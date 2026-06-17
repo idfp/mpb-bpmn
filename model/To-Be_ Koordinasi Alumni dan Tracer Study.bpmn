@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.44.0">
+  <process id="ProsesDToBe" name="To-Be: Koordinasi Alumni dan Tracer Study" isExecutable="true" camunda:historyTimeToLive="180">
+    <laneSet id="laneSet_1">
+      <lane id="lane_dosenpa" name="Dosen PA">
+        <flowNodeRef>task_tindak_lanjut</flowNodeRef>
+      </lane>
+      <lane id="lane_sistem" name="Sistem Portal">
+        <flowNodeRef>svc_kirim_link</flowNodeRef>
+        <flowNodeRef>svc_kirim_pengingat</flowNodeRef>
+        <flowNodeRef>svc_kirim_undangan</flowNodeRef>
+      </lane>
+      <lane id="lane_wdiii" name="WD III (Wakil Dekan Kemahasiswaan)">
+        <flowNodeRef>task_inisiasi</flowNodeRef>
+        <flowNodeRef>task_monitor</flowNodeRef>
+        <flowNodeRef>task_request_rekap</flowNodeRef>
+        <flowNodeRef>task_analisis</flowNodeRef>
+        <flowNodeRef>task_persiapkan_forum</flowNodeRef>
+        <flowNodeRef>task_pimpin_forum</flowNodeRef>
+        <flowNodeRef>gw_merge</flowNodeRef>
+        <flowNodeRef>task_rtm</flowNodeRef>
+        <flowNodeRef>task_lapor</flowNodeRef>
+        <flowNodeRef>start_1</flowNodeRef>
+        <flowNodeRef>gw_respons</flowNodeRef>
+        <flowNodeRef>gw_kurikulum</flowNodeRef>
+        <flowNodeRef>end_1</flowNodeRef>
+      </lane>
+    </laneSet>
+    <startEvent id="start_1" name="Periode Pengumpulan&#10;Data Tracer Study">
+      <outgoing>sf_start_inisiasi</outgoing>
+    </startEvent>
+    <userTask id="task_inisiasi" name="Inisiasi &#38; Koordinasi&#10;Tracer Study dengan CDE" camunda:assignee="wd3">
+      <incoming>sf_start_inisiasi</incoming>
+      <outgoing>sf_inisiasi_link</outgoing>
+    </userTask>
+    <serviceTask id="svc_kirim_link" name="Kirim Notifikasi&#10;Link Tracer ke Alumni">
+      <extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="url">http://217.217.254.115:8900/notify</camunda:inputParameter>
+            <camunda:inputParameter name="method">POST</camunda:inputParameter>
+            <camunda:inputParameter name="payload">{"recipient":"alumni_all","type":"tracer_link","processId":"${execution.processInstanceId}"}</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="Content-Type">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </extensionElements>
+      <incoming>sf_inisiasi_link</incoming>
+      <outgoing>sf_link_monitor</outgoing>
+    </serviceTask>
+    <userTask id="task_monitor" name="Monitor Respons Rate&#10;Tracer di Portal" camunda:assignee="wd3">
+      <extensionElements>
+        <camunda:formData>
+          <camunda:formField id="responsCukup" label="Apakah respons cukup?" type="boolean" defaultValue="false" />
+        </camunda:formData>
+      </extensionElements>
+      <incoming>sf_link_monitor</incoming>
+      <incoming>sf_pengingat_back</incoming>
+      <outgoing>sf_monitor_gw</outgoing>
+    </userTask>
+    <exclusiveGateway id="gw_respons" name="Respons Rate&#10;Cukup?">
+      <incoming>sf_monitor_gw</incoming>
+      <outgoing>sf_respons_tidak</outgoing>
+      <outgoing>sf_respons_ya</outgoing>
+    </exclusiveGateway>
+    <userTask id="task_tindak_lanjut" name="Tindak Lanjut Alumni&#10;Non-Responden (per PA)" camunda:candidateGroups="dosen_pa">
+      <incoming>sf_respons_tidak</incoming>
+      <outgoing>sf_tindak_pengingat</outgoing>
+    </userTask>
+    <serviceTask id="svc_kirim_pengingat" name="Kirim Notifikasi&#10;Pengingat ke Alumni">
+      <extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="url">http://217.217.254.115:8900/notify</camunda:inputParameter>
+            <camunda:inputParameter name="method">POST</camunda:inputParameter>
+            <camunda:inputParameter name="payload">{"recipient":"alumni_nonresponden","type":"tracer_reminder","processId":"${execution.processInstanceId}"}</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="Content-Type">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </extensionElements>
+      <incoming>sf_tindak_pengingat</incoming>
+      <outgoing>sf_pengingat_back</outgoing>
+    </serviceTask>
+    <userTask id="task_request_rekap" name="Request &#38; Terima&#10;Rekap Data dari CDE" camunda:assignee="wd3">
+      <incoming>sf_respons_ya</incoming>
+      <outgoing>sf_request_analisis</outgoing>
+    </userTask>
+    <userTask id="task_analisis" name="Analisis Data&#10;Tracer Study" camunda:assignee="wd3">
+      <extensionElements>
+        <camunda:formData>
+          <camunda:formField id="tahunPeninjauan" label="Apakah tahun ini termasuk tahun peninjauan kurikulum?" type="boolean" defaultValue="false" />
+        </camunda:formData>
+      </extensionElements>
+      <incoming>sf_request_analisis</incoming>
+      <outgoing>sf_analisis_gw</outgoing>
+    </userTask>
+    <exclusiveGateway id="gw_kurikulum" name="Tahun Peninjauan&#10;Kurikulum? (2 thn)">
+      <incoming>sf_analisis_gw</incoming>
+      <outgoing>sf_kurikulum_ya</outgoing>
+      <outgoing>sf_kurikulum_tidak</outgoing>
+    </exclusiveGateway>
+    <userTask id="task_persiapkan_forum" name="Persiapkan Forum&#10;Peninjauan Kurikulum" camunda:assignee="wd3">
+      <incoming>sf_kurikulum_ya</incoming>
+      <outgoing>sf_persiapkan_undangan</outgoing>
+    </userTask>
+    <serviceTask id="svc_kirim_undangan" name="Kirim Undangan Forum&#10;ke Alumni &#38; Mitra Industri">
+      <extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="url">http://217.217.254.115:8900/notify</camunda:inputParameter>
+            <camunda:inputParameter name="method">POST</camunda:inputParameter>
+            <camunda:inputParameter name="payload">{"recipient":"alumni_and_mitra","type":"forum_invitation","processId":"${execution.processInstanceId}"}</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="Content-Type">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </extensionElements>
+      <incoming>sf_persiapkan_undangan</incoming>
+      <outgoing>sf_undangan_pimpin</outgoing>
+    </serviceTask>
+    <userTask id="task_pimpin_forum" name="Pimpin Forum Peninjauan&#10;Kurikulum &#38; Koordinasi Alumni" camunda:assignee="wd3">
+      <incoming>sf_undangan_pimpin</incoming>
+      <outgoing>sf_pimpin_merge</outgoing>
+    </userTask>
+    <exclusiveGateway id="gw_merge" name="">
+      <incoming>sf_pimpin_merge</incoming>
+      <incoming>sf_kurikulum_tidak</incoming>
+      <outgoing>sf_merge_rtm</outgoing>
+    </exclusiveGateway>
+    <userTask id="task_rtm" name="Bahas Hasil Tracer di RTM&#10;&#38; Dokumentasikan" camunda:assignee="wd3">
+      <incoming>sf_merge_rtm</incoming>
+      <outgoing>sf_rtm_lapor</outgoing>
+    </userTask>
+    <userTask id="task_lapor" name="Lapor ke Wadek III&#10;&#38; Input ke LAKIN" camunda:assignee="wd3">
+      <incoming>sf_rtm_lapor</incoming>
+      <outgoing>sf_lapor_end</outgoing>
+    </userTask>
+    <endEvent id="end_1" name="Data Tracer Selesai&#10;Dikumpulkan &#38; Dilaporkan">
+      <incoming>sf_lapor_end</incoming>
+    </endEvent>
+    <sequenceFlow id="sf_start_inisiasi" sourceRef="start_1" targetRef="task_inisiasi" />
+    <sequenceFlow id="sf_inisiasi_link" sourceRef="task_inisiasi" targetRef="svc_kirim_link" />
+    <sequenceFlow id="sf_link_monitor" sourceRef="svc_kirim_link" targetRef="task_monitor" />
+    <sequenceFlow id="sf_monitor_gw" sourceRef="task_monitor" targetRef="gw_respons" />
+    <sequenceFlow id="sf_respons_tidak" name="Tidak" sourceRef="gw_respons" targetRef="task_tindak_lanjut">
+      <conditionExpression xsi:type="tFormalExpression">${responsCukup == false}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_respons_ya" name="Ya" sourceRef="gw_respons" targetRef="task_request_rekap">
+      <conditionExpression xsi:type="tFormalExpression">${responsCukup == true}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_tindak_pengingat" sourceRef="task_tindak_lanjut" targetRef="svc_kirim_pengingat" />
+    <sequenceFlow id="sf_pengingat_back" sourceRef="svc_kirim_pengingat" targetRef="task_monitor" />
+    <sequenceFlow id="sf_request_analisis" sourceRef="task_request_rekap" targetRef="task_analisis" />
+    <sequenceFlow id="sf_analisis_gw" sourceRef="task_analisis" targetRef="gw_kurikulum" />
+    <sequenceFlow id="sf_kurikulum_ya" name="Ya" sourceRef="gw_kurikulum" targetRef="task_persiapkan_forum">
+      <conditionExpression xsi:type="tFormalExpression">${tahunPeninjauan == true}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_kurikulum_tidak" name="Tidak" sourceRef="gw_kurikulum" targetRef="gw_merge">
+      <conditionExpression xsi:type="tFormalExpression">${tahunPeninjauan == false}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_persiapkan_undangan" sourceRef="task_persiapkan_forum" targetRef="svc_kirim_undangan" />
+    <sequenceFlow id="sf_undangan_pimpin" sourceRef="svc_kirim_undangan" targetRef="task_pimpin_forum" />
+    <sequenceFlow id="sf_pimpin_merge" sourceRef="task_pimpin_forum" targetRef="gw_merge" />
+    <sequenceFlow id="sf_merge_rtm" sourceRef="gw_merge" targetRef="task_rtm" />
+    <sequenceFlow id="sf_rtm_lapor" sourceRef="task_rtm" targetRef="task_lapor" />
+    <sequenceFlow id="sf_lapor_end" sourceRef="task_lapor" targetRef="end_1" />
+    <textAnnotation id="ann_monitor">
+      <text>WD III pantau respons rate via dashboard portal; menggantikan komunikasi informal tidak terstruktur</text>
+    </textAnnotation>
+    <association id="assoc_monitor" sourceRef="task_monitor" targetRef="ann_monitor" />
+    <textAnnotation id="ann_pengingat">
+      <text>Notifikasi pengingat otomatis via email/Telegram; menggantikan WA manual satu per satu ke alumni</text>
+    </textAnnotation>
+    <association id="assoc_pengingat" sourceRef="svc_kirim_pengingat" targetRef="ann_pengingat" />
+    <textAnnotation id="ann_rtm">
+      <text>Hasil RTM dan tindak lanjut didokumentasikan dalam sistem sebagai referensi penyusunan LAKIN</text>
+    </textAnnotation>
+    <association id="assoc_rtm" sourceRef="task_rtm" targetRef="ann_rtm" />
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="ProsesDToBe">
+      <bpmndi:BPMNShape id="lane_wdiii_di" bpmnElement="lane_wdiii" isHorizontal="true">
+        <dc:Bounds x="160" y="170" width="2550" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_sistem_di" bpmnElement="lane_sistem" isHorizontal="true">
+        <dc:Bounds x="160" y="330" width="2550" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_dosenpa_di" bpmnElement="lane_dosenpa" isHorizontal="true">
+        <dc:Bounds x="160" y="450" width="2550" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="start_1_di" bpmnElement="start_1">
+        <dc:Bounds x="242" y="241" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="219" y="284" width="89" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_inisiasi_di" bpmnElement="task_inisiasi">
+        <dc:Bounds x="310" y="219" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="svc_kirim_link_di" bpmnElement="svc_kirim_link">
+        <dc:Bounds x="490" y="350" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_monitor_di" bpmnElement="task_monitor">
+        <dc:Bounds x="670" y="219" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_respons_di" bpmnElement="gw_respons" isMarkerVisible="true">
+        <dc:Bounds x="845" y="234" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="835" y="196.5" width="70" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_tindak_lanjut_di" bpmnElement="task_tindak_lanjut">
+        <dc:Bounds x="845" y="485" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="svc_kirim_pengingat_di" bpmnElement="svc_kirim_pengingat">
+        <dc:Bounds x="1020" y="350" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_request_rekap_di" bpmnElement="task_request_rekap">
+        <dc:Bounds x="1020" y="219" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_analisis_di" bpmnElement="task_analisis">
+        <dc:Bounds x="1200" y="219" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_kurikulum_di" bpmnElement="gw_kurikulum" isMarkerVisible="true">
+        <dc:Bounds x="1380" y="234" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1360" y="291" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_persiapkan_forum_di" bpmnElement="task_persiapkan_forum">
+        <dc:Bounds x="1480" y="219" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="svc_kirim_undangan_di" bpmnElement="svc_kirim_undangan">
+        <dc:Bounds x="1660" y="350" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_pimpin_forum_di" bpmnElement="task_pimpin_forum">
+        <dc:Bounds x="1840" y="219" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_merge_di" bpmnElement="gw_merge" isMarkerVisible="true">
+        <dc:Bounds x="2020" y="234" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_rtm_di" bpmnElement="task_rtm">
+        <dc:Bounds x="2130" y="219" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_lapor_di" bpmnElement="task_lapor">
+        <dc:Bounds x="2320" y="219" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_1_di" bpmnElement="end_1">
+        <dc:Bounds x="2502" y="241" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2543" y="232" width="74" height="53" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_monitor_di" bpmnElement="ann_monitor">
+        <dc:Bounds x="670" y="70" width="220" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_pengingat_di" bpmnElement="ann_pengingat">
+        <dc:Bounds x="1020" y="650" width="230" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_rtm_di" bpmnElement="ann_rtm">
+        <dc:Bounds x="2130" y="90" width="220" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="sf_start_inisiasi_di" bpmnElement="sf_start_inisiasi">
+        <di:waypoint x="278" y="259" />
+        <di:waypoint x="310" y="259" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_inisiasi_link_di" bpmnElement="sf_inisiasi_link">
+        <di:waypoint x="430" y="259" />
+        <di:waypoint x="460" y="259" />
+        <di:waypoint x="460" y="390" />
+        <di:waypoint x="490" y="390" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_link_monitor_di" bpmnElement="sf_link_monitor">
+        <di:waypoint x="610" y="390" />
+        <di:waypoint x="640" y="390" />
+        <di:waypoint x="640" y="259" />
+        <di:waypoint x="670" y="259" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_monitor_gw_di" bpmnElement="sf_monitor_gw">
+        <di:waypoint x="790" y="259" />
+        <di:waypoint x="845" y="259" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_respons_tidak_di" bpmnElement="sf_respons_tidak">
+        <di:waypoint x="870" y="284" />
+        <di:waypoint x="870" y="485" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="876" y="380" width="27" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_respons_ya_di" bpmnElement="sf_respons_ya">
+        <di:waypoint x="895" y="259" />
+        <di:waypoint x="1020" y="259" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="948" y="239" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_tindak_pengingat_di" bpmnElement="sf_tindak_pengingat">
+        <di:waypoint x="965" y="525" />
+        <di:waypoint x="1080" y="525" />
+        <di:waypoint x="1080" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_pengingat_back_di" bpmnElement="sf_pengingat_back">
+        <di:waypoint x="1020" y="390" />
+        <di:waypoint x="920" y="390" />
+        <di:waypoint x="920" y="350" />
+        <di:waypoint x="730" y="350" />
+        <di:waypoint x="730" y="299" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_request_analisis_di" bpmnElement="sf_request_analisis">
+        <di:waypoint x="1140" y="259" />
+        <di:waypoint x="1200" y="259" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_analisis_gw_di" bpmnElement="sf_analisis_gw">
+        <di:waypoint x="1320" y="259" />
+        <di:waypoint x="1380" y="259" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_kurikulum_ya_di" bpmnElement="sf_kurikulum_ya">
+        <di:waypoint x="1430" y="259" />
+        <di:waypoint x="1480" y="259" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1447" y="239" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_kurikulum_tidak_di" bpmnElement="sf_kurikulum_tidak">
+        <di:waypoint x="1405" y="234" />
+        <di:waypoint x="1405" y="175" />
+        <di:waypoint x="2045" y="175" />
+        <di:waypoint x="2045" y="234" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1690" y="155" width="27" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_persiapkan_undangan_di" bpmnElement="sf_persiapkan_undangan">
+        <di:waypoint x="1600" y="259" />
+        <di:waypoint x="1630" y="259" />
+        <di:waypoint x="1630" y="390" />
+        <di:waypoint x="1660" y="390" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_undangan_pimpin_di" bpmnElement="sf_undangan_pimpin">
+        <di:waypoint x="1780" y="390" />
+        <di:waypoint x="1900" y="390" />
+        <di:waypoint x="1900" y="299" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_pimpin_merge_di" bpmnElement="sf_pimpin_merge">
+        <di:waypoint x="1960" y="259" />
+        <di:waypoint x="2020" y="259" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_merge_rtm_di" bpmnElement="sf_merge_rtm">
+        <di:waypoint x="2070" y="259" />
+        <di:waypoint x="2130" y="259" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_rtm_lapor_di" bpmnElement="sf_rtm_lapor">
+        <di:waypoint x="2250" y="259" />
+        <di:waypoint x="2320" y="259" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_lapor_end_di" bpmnElement="sf_lapor_end">
+        <di:waypoint x="2440" y="259" />
+        <di:waypoint x="2502" y="259" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_monitor_di" bpmnElement="assoc_monitor">
+        <di:waypoint x="730" y="219" />
+        <di:waypoint x="730" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_pengingat_di" bpmnElement="assoc_pengingat">
+        <di:waypoint x="1080" y="430" />
+        <di:waypoint x="1080" y="650" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_rtm_di" bpmnElement="assoc_rtm">
+        <di:waypoint x="2190" y="219" />
+        <di:waypoint x="2190" y="150" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

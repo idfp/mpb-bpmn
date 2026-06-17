@@ -1,0 +1,39 @@
+{
+  "components": [
+    {
+      "text": "Kegiatan: {{namaKegiatan}} — {{namaOrmawa}}",
+      "type": "text",
+      "layout": {
+        "row": "Row_1766les",
+        "columns": null
+      },
+      "id": "Field_008xet5"
+    },
+    {
+      "label": "Format KAK sudah lengkap dan tanda tangan tersedia?",
+      "type": "checkbox",
+      "layout": {
+        "row": "Row_1prp5dq",
+        "columns": null
+      },
+      "id": "Field_1f8cmvm",
+      "key": "formatLengkap",
+      "validate": {
+        "required": false
+      }
+    },
+    {
+      "label": "Catatan / Alasan Revisi (isi jika format tidak lengkap)",
+      "type": "textarea",
+      "layout": {
+        "row": "Row_0lxw26r",
+        "columns": null
+      },
+      "id": "Field_1xn6gd5",
+      "key": "catatanFitri"
+    }
+  ],
+  "schemaVersion": 19,
+  "type": "default",
+  "id": "form-verifikasi-kak"
+}

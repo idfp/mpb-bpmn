@@ -1,0 +1,48 @@
+{
+  "components": [
+    {
+      "text": "Kegiatan: {{namaKegiatan}} — {{namaOrmawa}}\n",
+      "type": "text",
+      "layout": {
+        "row": "Row_0zv49qx",
+        "columns": null
+      },
+      "id": "Field_17kn2z3"
+    },
+    {
+      "text": "Total Anggaran Diajukan: Rp {{totalAnggaran}}",
+      "type": "text",
+      "layout": {
+        "row": "Row_1s5bamx",
+        "columns": null
+      },
+      "id": "Field_145vb51"
+    },
+    {
+      "label": "Anggaran sesuai dengan SBM Kemendikbud?",
+      "type": "checkbox",
+      "layout": {
+        "row": "Row_16m4uiu",
+        "columns": null
+      },
+      "id": "Field_0eok5y4",
+      "key": "anggaranSesuai",
+      "validate": {
+        "required": false
+      }
+    },
+    {
+      "label": "Catatan Anggaran (isi jika tidak sesuai SBM)",
+      "type": "textarea",
+      "layout": {
+        "row": "Row_14guvhv",
+        "columns": null
+      },
+      "id": "Field_1nfva5t",
+      "key": "catatanSuryadi"
+    }
+  ],
+  "schemaVersion": 19,
+  "type": "default",
+  "id": "form-verifikasi-anggaran"
+}

@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.44.0">
+  <process id="ProsesGAsIS" name="As-Is: Penyusunan Laporan Kinerja (LAKIN)" isExecutable="false">
+    <laneSet id="ls1">
+      <lane id="lane_wadek" name="Warek III (Penerima Laporan)">
+        <flowNodeRef>msg_catch_lakin</flowNodeRef>
+        <flowNodeRef>end_2</flowNodeRef>
+      </lane>
+      <lane id="lane_cde" name="Platform CDE (Universitas)">
+        <flowNodeRef>task_berikan_data_tracer</flowNodeRef>
+      </lane>
+      <lane id="lane_wdiii" name="WD III (Wakil Dekan Kemahasiswaan)">
+        <flowNodeRef>task_request_tracer</flowNodeRef>
+        <flowNodeRef>task_susun_lakin</flowNodeRef>
+        <flowNodeRef>task_review_finalisasi</flowNodeRef>
+        <flowNodeRef>msg_throw_lakin</flowNodeRef>
+        <flowNodeRef>gw_tracer_tersedia</flowNodeRef>
+      </lane>
+      <lane id="lane_fitri" name="Mbak Fitri (Staf Administrasi)">
+        <flowNodeRef>task_siapkan_data_lengkap</flowNodeRef>
+        <flowNodeRef>task_rekap_prestasi</flowNodeRef>
+        <flowNodeRef>boundary_timer_akhirtahun</flowNodeRef>
+        <flowNodeRef>task_update_sheet_kerjasama</flowNodeRef>
+        <flowNodeRef>task_input_kak_lpj</flowNodeRef>
+        <flowNodeRef>start_1</flowNodeRef>
+        <flowNodeRef>end_1</flowNodeRef>
+      </lane>
+    </laneSet>
+    <dataStoreReference id="ds_sheet_kerjasama" name="Google Sheet Kerjasama&#10;(PKS &#38; IA)" />
+    <dataStoreReference id="ds_sheet_proker" name="Google Spreadsheet&#10;Monitoring Proker" />
+    <dataStoreReference id="ds_cde" name="Platform CDE&#10;(Universitas - Bu Catur)" />
+    <startEvent id="start_1" name="Awal Tahun: Mulai&#10;Input Data Kontinu">
+      <outgoing>sf_start_input</outgoing>
+    </startEvent>
+    <task id="task_input_kak_lpj" name="Input Data KAK &#38; LPJ&#10;yang Selesai (Kontinu)">
+      <incoming>sf_start_input</incoming>
+      <outgoing>sf_input_update</outgoing>
+      <dataOutputAssociation id="doa_proker">
+        <targetRef>ds_sheet_proker</targetRef>
+      </dataOutputAssociation>
+    </task>
+    <task id="task_update_sheet_kerjasama" name="Update Google Sheet&#10;Kerjasama (PKS &#38; IA)">
+      <incoming>sf_input_update</incoming>
+      <outgoing>sf_update_prestasi</outgoing>
+      <dataOutputAssociation id="doa_kerjasama">
+        <targetRef>ds_sheet_kerjasama</targetRef>
+      </dataOutputAssociation>
+    </task>
+    <task id="task_rekap_prestasi" name="Rekap Data Prestasi&#10;Mahasiswa (Kontinu)">
+      <incoming>sf_update_prestasi</incoming>
+      <outgoing>sf_prestasi_timer</outgoing>
+      <dataOutputAssociation id="doa_prestasi">
+        <targetRef>ds_sheet_proker</targetRef>
+      </dataOutputAssociation>
+    </task>
+    <task id="task_siapkan_data_lengkap" name="Siapkan Rekap Data&#10;Lengkap untuk WD III">
+      <incoming>sf_timer_siapkan</incoming>
+      <outgoing>sf_siapkan_request</outgoing>
+      <dataInputAssociation id="dia_proker">
+        <sourceRef>ds_sheet_proker</sourceRef>
+      </dataInputAssociation>
+      <dataInputAssociation id="dia_kerjasama">
+        <sourceRef>ds_sheet_kerjasama</sourceRef>
+      </dataInputAssociation>
+    </task>
+    <task id="task_request_tracer" name="Request Data Tracer Study&#10;dari Bu Catur (Platform CDE)">
+      <incoming>sf_siapkan_request</incoming>
+      <outgoing>sf_request_berikan</outgoing>
+    </task>
+    <task id="task_berikan_data_tracer" name="Berikan Data Tracer Study&#10;ke WD III">
+      <incoming>sf_request_berikan</incoming>
+      <outgoing>sf_berikan_gw</outgoing>
+      <dataInputAssociation id="dia_cde">
+        <sourceRef>ds_cde</sourceRef>
+      </dataInputAssociation>
+    </task>
+    <exclusiveGateway id="gw_tracer_tersedia" name="Data Tracer&#10;Tersedia &#38; Cukup?">
+      <incoming>sf_berikan_gw</incoming>
+      <outgoing>sf_tersedia_susun</outgoing>
+      <outgoing>sf_belum_request</outgoing>
+    </exclusiveGateway>
+    <task id="task_susun_lakin" name="Susun LAKIN per Bidang&#10;(Kemahasiswaan, Alumni, Kerjasama)">
+      <incoming>sf_tersedia_susun</incoming>
+      <outgoing>sf_susun_review</outgoing>
+      <dataInputAssociation id="dia_proker2">
+        <sourceRef>ds_sheet_proker</sourceRef>
+      </dataInputAssociation>
+      <dataInputAssociation id="dia_kerjasama2">
+        <sourceRef>ds_sheet_kerjasama</sourceRef>
+      </dataInputAssociation>
+    </task>
+    <task id="task_review_finalisasi" name="Review &#38; Finalisasi&#10;LAKIN">
+      <incoming>sf_susun_review</incoming>
+      <outgoing>sf_review_throw</outgoing>
+    </task>
+    <dataObjectReference id="do_lakin" name="LAKIN Final&#10;(Dokumen)" dataObjectRef="dao_lakin" />
+    <dataObject id="dao_lakin" />
+    <intermediateThrowEvent id="msg_throw_lakin" name="Sampaikan LAKIN&#10;ke Wadek III">
+      <incoming>sf_review_throw</incoming>
+      <outgoing>sf_throw_catch_lakin</outgoing>
+      <messageEventDefinition id="med_throw_lakin" />
+    </intermediateThrowEvent>
+    <intermediateCatchEvent id="msg_catch_lakin" name="Terima LAKIN&#10;dari WD III">
+      <incoming>sf_throw_catch_lakin</incoming>
+      <outgoing>sf_catch_end2</outgoing>
+      <messageEventDefinition id="med_catch_lakin" />
+    </intermediateCatchEvent>
+    <endEvent id="end_1" name="Selesai (Fitri)">
+      <incoming>sf_prestasi_timer</incoming>
+    </endEvent>
+    <endEvent id="end_2" name="LAKIN Diterima&#10;Wadek III">
+      <incoming>sf_catch_end2</incoming>
+    </endEvent>
+    <sequenceFlow id="sf_start_input" sourceRef="start_1" targetRef="task_input_kak_lpj" />
+    <sequenceFlow id="sf_input_update" sourceRef="task_input_kak_lpj" targetRef="task_update_sheet_kerjasama" />
+    <sequenceFlow id="sf_update_prestasi" sourceRef="task_update_sheet_kerjasama" targetRef="task_rekap_prestasi" />
+    <sequenceFlow id="sf_prestasi_timer" sourceRef="task_rekap_prestasi" targetRef="end_1" />
+    <sequenceFlow id="sf_timer_siapkan" sourceRef="boundary_timer_akhirtahun" targetRef="task_siapkan_data_lengkap" />
+    <sequenceFlow id="sf_siapkan_request" sourceRef="task_siapkan_data_lengkap" targetRef="task_request_tracer" />
+    <sequenceFlow id="sf_request_berikan" sourceRef="task_request_tracer" targetRef="task_berikan_data_tracer" />
+    <sequenceFlow id="sf_berikan_gw" sourceRef="task_berikan_data_tracer" targetRef="gw_tracer_tersedia" />
+    <sequenceFlow id="sf_tersedia_susun" name="Ya" sourceRef="gw_tracer_tersedia" targetRef="task_susun_lakin">
+      <conditionExpression>Data tracer tersedia dan cukup</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_belum_request" name="Tidak" sourceRef="gw_tracer_tersedia" targetRef="task_request_tracer">
+      <conditionExpression>Data belum tersedia / belum cukup</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_susun_review" sourceRef="task_susun_lakin" targetRef="task_review_finalisasi" />
+    <sequenceFlow id="sf_review_throw" sourceRef="task_review_finalisasi" targetRef="msg_throw_lakin" />
+    <sequenceFlow id="sf_throw_catch_lakin" sourceRef="msg_throw_lakin" targetRef="msg_catch_lakin" />
+    <sequenceFlow id="sf_catch_end2" sourceRef="msg_catch_lakin" targetRef="end_2" />
+    <boundaryEvent id="boundary_timer_akhirtahun" name="Akhir Tahun /&#10;Periode Pelaporan" attachedToRef="task_rekap_prestasi">
+      <outgoing>sf_timer_siapkan</outgoing>
+      <timerEventDefinition id="TimerEventDefinition_19pqk2z">
+        <timeCycle xsi:type="tFormalExpression">R/P1Y</timeCycle>
+      </timerEventDefinition>
+    </boundaryEvent>
+    <textAnnotation id="ann_kontinu">
+      <text>Input dilakukan sepanjang tahun setiap ada KAK/LPJ yang selesai; bukan dikumpulkan di akhir tahun</text>
+    </textAnnotation>
+    <association id="assoc_kontinu" sourceRef="task_input_kak_lpj" targetRef="ann_kontinu" />
+    <textAnnotation id="ann_tiga_komponen">
+      <text>Tiga komponen tetap LAKIN: (1) Prestasi mahasiswa, (2) Data tracer study, (3) Data kerjasama PKS &amp; IA</text>
+    </textAnnotation>
+    <association id="assoc_tiga_komponen" sourceRef="task_rekap_prestasi" targetRef="ann_tiga_komponen" />
+    <textAnnotation id="ann_timer">
+      <text>Penyusunan LAKIN dilakukan setiap akhir tahun; karena data sudah diinput kontinu, proses kompilasi hanya ~1 minggu</text>
+    </textAnnotation>
+    <association id="assoc_timer" sourceRef="boundary_timer_akhirtahun" targetRef="ann_timer" />
+    <textAnnotation id="ann_cde_bottleneck">
+      <text>Bottleneck utama: data tracer bergantung platform eksternal (CDE) yang dikelola universitas; FIK tidak bisa akses mandiri. Sering menjadi penyebab keterlambatan penyusunan LAKIN.</text>
+    </textAnnotation>
+    <association id="assoc_cde_bottleneck" sourceRef="task_request_tracer" targetRef="ann_cde_bottleneck" />
+    <textAnnotation id="ann_lakin_isi">
+      <text>LAKIN mencakup tiga bidang: kemahasiswaan (kegiatan Ormawa, prestasi), alumni (tracer study), dan kerjasama (PKS &amp; IA aktif)</text>
+    </textAnnotation>
+    <association id="assoc_lakin_isi" sourceRef="task_susun_lakin" targetRef="ann_lakin_isi" />
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_G">
+    <bpmndi:BPMNPlane id="BPMNPlane_G" bpmnElement="ProsesGAsIS">
+      <bpmndi:BPMNShape id="lane_fitri_di" bpmnElement="lane_fitri" isHorizontal="true">
+        <dc:Bounds x="160" y="180" width="1700" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_wdiii_di" bpmnElement="lane_wdiii" isHorizontal="true">
+        <dc:Bounds x="160" y="380" width="1700" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_cde_di" bpmnElement="lane_cde" isHorizontal="true">
+        <dc:Bounds x="160" y="580" width="1700" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_wadek_di" bpmnElement="lane_wadek" isHorizontal="true">
+        <dc:Bounds x="160" y="730" width="1700" height="130" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ds_sheet_kerjasama_di" bpmnElement="ds_sheet_kerjasama" isDataStoreReference="true">
+        <dc:Bounds x="225" y="245" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="213" y="303" width="68" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ds_sheet_proker_di" bpmnElement="ds_sheet_proker" isDataStoreReference="true">
+        <dc:Bounds x="225" y="410" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="204" y="468" width="87" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ds_cde_di" bpmnElement="ds_cde" isDataStoreReference="true">
+        <dc:Bounds x="225" y="614" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="213" y="672" width="68" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="start_1_di" bpmnElement="start_1">
+        <dc:Bounds x="312" y="261" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="289" y="304" width="89" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_input_kak_lpj_di" bpmnElement="task_input_kak_lpj">
+        <dc:Bounds x="410" y="239" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_update_sheet_kerjasama_di" bpmnElement="task_update_sheet_kerjasama">
+        <dc:Bounds x="560" y="239" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_rekap_prestasi_di" bpmnElement="task_rekap_prestasi">
+        <dc:Bounds x="730" y="239" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_siapkan_data_lengkap_di" bpmnElement="task_siapkan_data_lengkap">
+        <dc:Bounds x="980" y="239" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_request_tracer_di" bpmnElement="task_request_tracer">
+        <dc:Bounds x="900" y="419" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_berikan_data_tracer_di" bpmnElement="task_berikan_data_tracer">
+        <dc:Bounds x="900" y="599" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_tracer_tersedia_di" bpmnElement="gw_tracer_tersedia" isMarkerVisible="true">
+        <dc:Bounds x="1070" y="434" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1111" y="397" width="58" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_susun_lakin_di" bpmnElement="task_susun_lakin">
+        <dc:Bounds x="1200" y="419" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_review_finalisasi_di" bpmnElement="task_review_finalisasi">
+        <dc:Bounds x="1380" y="419" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="do_lakin_di" bpmnElement="do_lakin" isDataObject="true">
+        <dc:Bounds x="1592" y="485" width="36" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1581" y="542" width="59" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="msg_throw_lakin_di" bpmnElement="msg_throw_lakin">
+        <dc:Bounds x="1552" y="441" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1525" y="403.5" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="msg_catch_lakin_di" bpmnElement="msg_catch_lakin">
+        <dc:Bounds x="1552" y="771" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1538" y="814" width="68" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_1_di" bpmnElement="end_1">
+        <dc:Bounds x="892" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="878" y="235" width="65" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_2_di" bpmnElement="end_2">
+        <dc:Bounds x="1672" y="771" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1655" y="814" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_kontinu_di" bpmnElement="ann_kontinu">
+        <dc:Bounds x="340" y="90" width="230" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_tiga_komponen_di" bpmnElement="ann_tiga_komponen">
+        <dc:Bounds x="615" y="92" width="250" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_timer_di" bpmnElement="ann_timer">
+        <dc:Bounds x="890" y="92" width="240" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_cde_bottleneck_di" bpmnElement="ann_cde_bottleneck">
+        <dc:Bounds x="1150" y="85" width="260" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_lakin_isi_di" bpmnElement="ann_lakin_isi">
+        <dc:Bounds x="1430" y="92" width="250" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1y5fv1s_di" bpmnElement="boundary_timer_akhirtahun">
+        <dc:Bounds x="832" y="261" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="898" y="290" width="64" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="sf_start_input_di" bpmnElement="sf_start_input">
+        <di:waypoint x="348" y="279" />
+        <di:waypoint x="410" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_input_update_di" bpmnElement="sf_input_update">
+        <di:waypoint x="530" y="279" />
+        <di:waypoint x="560" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_update_prestasi_di" bpmnElement="sf_update_prestasi">
+        <di:waypoint x="680" y="279" />
+        <di:waypoint x="730" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_prestasi_timer_di" bpmnElement="sf_prestasi_timer">
+        <di:waypoint x="800" y="239" />
+        <di:waypoint x="800" y="210" />
+        <di:waypoint x="892" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_timer_siapkan_di" bpmnElement="sf_timer_siapkan">
+        <di:waypoint x="868" y="279" />
+        <di:waypoint x="980" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_siapkan_request_di" bpmnElement="sf_siapkan_request">
+        <di:waypoint x="1040" y="319" />
+        <di:waypoint x="1040" y="369" />
+        <di:waypoint x="960" y="369" />
+        <di:waypoint x="960" y="419" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_request_berikan_di" bpmnElement="sf_request_berikan">
+        <di:waypoint x="960" y="499" />
+        <di:waypoint x="960" y="599" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_berikan_gw_di" bpmnElement="sf_berikan_gw">
+        <di:waypoint x="1020" y="639" />
+        <di:waypoint x="1095" y="639" />
+        <di:waypoint x="1095" y="484" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_tersedia_susun_di" bpmnElement="sf_tersedia_susun">
+        <di:waypoint x="1120" y="459" />
+        <di:waypoint x="1200" y="459" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1154" y="441" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_belum_request_di" bpmnElement="sf_belum_request">
+        <di:waypoint x="1095" y="434" />
+        <di:waypoint x="1095" y="390" />
+        <di:waypoint x="960" y="390" />
+        <di:waypoint x="960" y="419" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1014" y="372" width="27" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_susun_review_di" bpmnElement="sf_susun_review">
+        <di:waypoint x="1320" y="459" />
+        <di:waypoint x="1380" y="459" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_review_throw_di" bpmnElement="sf_review_throw">
+        <di:waypoint x="1500" y="459" />
+        <di:waypoint x="1552" y="459" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_throw_catch_lakin_di" bpmnElement="sf_throw_catch_lakin">
+        <di:waypoint x="1570" y="477" />
+        <di:waypoint x="1570" y="771" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_catch_end2_di" bpmnElement="sf_catch_end2">
+        <di:waypoint x="1588" y="789" />
+        <di:waypoint x="1672" y="789" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_kontinu_di" bpmnElement="assoc_kontinu">
+        <di:waypoint x="463" y="239" />
+        <di:waypoint x="447" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_tiga_komponen_di" bpmnElement="assoc_tiga_komponen">
+        <di:waypoint x="766" y="239" />
+        <di:waypoint x="711" y="147" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_timer_di" bpmnElement="assoc_timer">
+        <di:waypoint x="865" y="269" />
+        <di:waypoint x="911" y="147" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_cde_bottleneck_di" bpmnElement="assoc_cde_bottleneck">
+        <di:waypoint x="960" y="418" />
+        <di:waypoint x="1280" y="179" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_lakin_isi_di" bpmnElement="assoc_lakin_isi">
+        <di:waypoint x="1288" y="419" />
+        <di:waypoint x="1481" y="147" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

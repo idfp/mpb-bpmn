@@ -1,0 +1,616 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.44.0">
+  <process id="ProsesCToBe" name="To-Be: Pengajuan Kegiatan Ormawa (KAK)" isExecutable="true" camunda:historyTimeToLive="180">
+    <laneSet id="laneSet_1">
+      <lane id="lane_ormawa" name="Ormawa / UKM">
+        <flowNodeRef>start_1</flowNodeRef>
+        <flowNodeRef>task_isi_kak</flowNodeRef>
+        <flowNodeRef>task_upload_lpj</flowNodeRef>
+        <flowNodeRef>end_1</flowNodeRef>
+        <flowNodeRef>task_laksanakan</flowNodeRef>
+        <flowNodeRef>boundary_timer_lpj</flowNodeRef>
+      </lane>
+      <lane id="lane_sistem" name="Sistem Portal">
+        <flowNodeRef>svc_notif_revisi_kak</flowNodeRef>
+        <flowNodeRef>svc_notif_revisi_lpj</flowNodeRef>
+        <flowNodeRef>svc_lapor_keuangan</flowNodeRef>
+        <flowNodeRef>svc_notif_kak_approved</flowNodeRef>
+        <flowNodeRef>svc_notif_lpj_reminder</flowNodeRef>
+        <flowNodeRef>end_timer</flowNodeRef>
+      </lane>
+      <lane id="lane_fitri" name="Mbak Fitri (Staf Administrasi)">
+        <flowNodeRef>task_verif_kak</flowNodeRef>
+        <flowNodeRef>gw_format</flowNodeRef>
+        <flowNodeRef>task_verif_lpj</flowNodeRef>
+        <flowNodeRef>gw_lpj_lengkap</flowNodeRef>
+      </lane>
+      <lane id="lane_suryadi" name="Mas Suryadi (Keuangan)">
+        <flowNodeRef>task_verif_anggaran</flowNodeRef>
+        <flowNodeRef>gw_anggaran</flowNodeRef>
+        <flowNodeRef>task_verif_kuitansi</flowNodeRef>
+        <flowNodeRef>gw_kuitansi</flowNodeRef>
+      </lane>
+      <lane id="lane_wdiii" name="WD III (Wakil Dekan Kemahasiswaan)">
+        <flowNodeRef>task_validasi_kak</flowNodeRef>
+        <flowNodeRef>task_sahkan_lpj</flowNodeRef>
+        <flowNodeRef>gw_wdiii</flowNodeRef>
+        <flowNodeRef>Activity_1cg88e3</flowNodeRef>
+      </lane>
+      <lane id="lane_dekan" name="Dekan">
+        <flowNodeRef>task_setuju_dekan</flowNodeRef>
+        <flowNodeRef>gw_dekan</flowNodeRef>
+      </lane>
+    </laneSet>
+    <startEvent id="start_1" name="Awal Tahun:&#10;Perencanaan Proker" camunda:formRef="form-start-kak" camunda:formRefBinding="latest">
+      <outgoing>sf_start_kak</outgoing>
+    </startEvent>
+    <userTask id="task_isi_kak" name="Isi &#38; Submit&#10;Form KAK Digital" camunda:candidateGroups="ormawa">
+      <incoming>sf_start_kak</incoming>
+      <incoming>sf_revisi_kak_back</incoming>
+      <outgoing>sf_kak_to_fitri</outgoing>
+    </userTask>
+    <userTask id="task_verif_kak" name="Verifikasi Kelengkapan&#10;KAK &#38; Format" camunda:formRef="form-verifikasi-kak" camunda:formRefBinding="latest" camunda:assignee="fitri">
+      <extensionElements />
+      <incoming>sf_kak_to_fitri</incoming>
+      <outgoing>sf_fitri_gw</outgoing>
+    </userTask>
+    <exclusiveGateway id="gw_format" name="Format&#10;Lengkap?">
+      <incoming>sf_fitri_gw</incoming>
+      <outgoing>sf_format_tidak</outgoing>
+      <outgoing>sf_format_ya</outgoing>
+    </exclusiveGateway>
+    <userTask id="task_verif_anggaran" name="Verifikasi Anggaran&#10;vs SBM Kemendikbud" camunda:formRef="form-verifikasi-anggaran" camunda:formRefBinding="latest" camunda:assignee="suryadi">
+      <extensionElements />
+      <incoming>sf_format_ya</incoming>
+      <outgoing>sf_anggaran_gw</outgoing>
+    </userTask>
+    <exclusiveGateway id="gw_anggaran" name="Anggaran&#10;Sesuai SBM?">
+      <incoming>sf_anggaran_gw</incoming>
+      <outgoing>sf_anggaran_tidak</outgoing>
+      <outgoing>sf_anggaran_ya</outgoing>
+    </exclusiveGateway>
+    <userTask id="task_validasi_kak" name="Validasi KAK&#10;&#38; Kesesuaian IKU" camunda:formRef="form-validasi-wdiii" camunda:formRefBinding="latest" camunda:assignee="wd3">
+      <extensionElements />
+      <incoming>sf_anggaran_ya</incoming>
+      <outgoing>Flow_13u07sg</outgoing>
+    </userTask>
+    <exclusiveGateway id="gw_wdiii" name="WD III&#10;Setuju?">
+      <incoming>Flow_1qnrhb6</incoming>
+      <outgoing>sf_wdiii_tidak</outgoing>
+      <outgoing>sf_wdiii_ya</outgoing>
+    </exclusiveGateway>
+    <userTask id="task_setuju_dekan" name="Review &#38; Setujui&#10;KAK" camunda:assignee="dekan">
+      <extensionElements>
+        <camunda:formData>
+          <camunda:formField id="setujuKAK" label="Apakah KAK disetujui?" type="boolean" defaultValue="false" />
+        </camunda:formData>
+      </extensionElements>
+      <incoming>sf_wdiii_ya</incoming>
+      <outgoing>sf_dekan_gw</outgoing>
+    </userTask>
+    <exclusiveGateway id="gw_dekan" name="Dekan&#10;Setuju?">
+      <incoming>sf_dekan_gw</incoming>
+      <outgoing>sf_dekan_tidak</outgoing>
+      <outgoing>sf_dekan_ya</outgoing>
+    </exclusiveGateway>
+    <serviceTask id="svc_notif_revisi_kak" name="Kirim Notifikasi&#10;Revisi KAK ke Ormawa">
+      <extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="url">http://217.217.254.115:8900/notify</camunda:inputParameter>
+            <camunda:inputParameter name="method">POST</camunda:inputParameter>
+            <camunda:inputParameter name="payload">{"recipient":"ormawa","type":"kak_revision","processId":"${execution.processInstanceId}"}</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="Content-Type">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </extensionElements>
+      <incoming>sf_format_tidak</incoming>
+      <incoming>sf_anggaran_tidak</incoming>
+      <incoming>sf_wdiii_tidak</incoming>
+      <incoming>sf_dekan_tidak</incoming>
+      <outgoing>sf_revisi_kak_back</outgoing>
+    </serviceTask>
+    <serviceTask id="svc_notif_kak_approved" name="Kirim Notifikasi&#10;KAK Disetujui ke Ormawa">
+      <extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="url">http://217.217.254.115:8900/notify</camunda:inputParameter>
+            <camunda:inputParameter name="method">POST</camunda:inputParameter>
+            <camunda:inputParameter name="payload">{"recipient":"ormawa","type":"kak_approved","processId":"${execution.processInstanceId}"}</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="Content-Type">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </extensionElements>
+      <incoming>sf_dekan_ya</incoming>
+      <outgoing>sf_approved_laksana</outgoing>
+    </serviceTask>
+    <userTask id="task_laksanakan" name="Laksanakan&#10;Kegiatan" camunda:candidateGroups="ormawa">
+      <incoming>sf_approved_laksana</incoming>
+      <outgoing>sf_laksana_upload</outgoing>
+    </userTask>
+    <boundaryEvent id="boundary_timer_lpj" name="14 Hari&#10;Berlalu" cancelActivity="false" attachedToRef="task_laksanakan">
+      <outgoing>sf_timer_notif</outgoing>
+      <timerEventDefinition id="ted_lpj">
+        <timeDuration xsi:type="tFormalExpression">P14D</timeDuration>
+      </timerEventDefinition>
+    </boundaryEvent>
+    <serviceTask id="svc_notif_lpj_reminder" name="Kirim Notifikasi&#10;Pengingat LPJ ke Ormawa">
+      <extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="url">http://217.217.254.115:8900/notify</camunda:inputParameter>
+            <camunda:inputParameter name="method">POST</camunda:inputParameter>
+            <camunda:inputParameter name="payload">{"recipient":"ormawa","type":"lpj_reminder","processId":"${execution.processInstanceId}"}</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="Content-Type">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </extensionElements>
+      <incoming>sf_timer_notif</incoming>
+      <outgoing>sf_reminder_end</outgoing>
+    </serviceTask>
+    <endEvent id="end_timer" name="Notifikasi&#10;Terkirim">
+      <incoming>sf_reminder_end</incoming>
+    </endEvent>
+    <userTask id="task_upload_lpj" name="Upload LPJ &#38;&#10;Kuitansi Digital" camunda:candidateGroups="ormawa">
+      <incoming>sf_laksana_upload</incoming>
+      <incoming>sf_revisi_lpj_back</incoming>
+      <outgoing>sf_lpj_to_fitri</outgoing>
+    </userTask>
+    <userTask id="task_verif_lpj" name="Verifikasi Kelengkapan&#10;LPJ &#38; Kuitansi" camunda:assignee="fitri">
+      <extensionElements>
+        <camunda:formData>
+          <camunda:formField id="LPJLengkap" label="Apakah LPJ dan Kuitansi lengkap?" type="boolean" defaultValue="false" />
+        </camunda:formData>
+      </extensionElements>
+      <incoming>sf_lpj_to_fitri</incoming>
+      <outgoing>sf_lpj_fitri_gw</outgoing>
+    </userTask>
+    <exclusiveGateway id="gw_lpj_lengkap" name="LPJ&#10;Lengkap?">
+      <incoming>sf_lpj_fitri_gw</incoming>
+      <outgoing>sf_lpj_tidak</outgoing>
+      <outgoing>sf_lpj_ya</outgoing>
+    </exclusiveGateway>
+    <userTask id="task_verif_kuitansi" name="Verifikasi Kuitansi&#10;&#38; Bukti Pengeluaran" camunda:assignee="suryadi">
+      <extensionElements>
+        <camunda:formData>
+          <camunda:formField id="kuitansiSah" label="Apakah kuitansi sah?" type="boolean" defaultValue="false" />
+        </camunda:formData>
+      </extensionElements>
+      <incoming>sf_lpj_ya</incoming>
+      <outgoing>sf_kuitansi_gw</outgoing>
+    </userTask>
+    <exclusiveGateway id="gw_kuitansi" name="Kuitansi&#10;Sah?">
+      <incoming>sf_kuitansi_gw</incoming>
+      <outgoing>sf_kuitansi_tidak</outgoing>
+      <outgoing>sf_kuitansi_ya</outgoing>
+    </exclusiveGateway>
+    <serviceTask id="svc_notif_revisi_lpj" name="Kirim Notifikasi&#10;Revisi LPJ ke Ormawa">
+      <extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="url">http://217.217.254.115:8900/notify</camunda:inputParameter>
+            <camunda:inputParameter name="method">POST</camunda:inputParameter>
+            <camunda:inputParameter name="payload">{"recipient":"ormawa","type":"lpj_revision","processId":"${execution.processInstanceId}"}</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="Content-Type">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </extensionElements>
+      <incoming>sf_lpj_tidak</incoming>
+      <incoming>sf_kuitansi_tidak</incoming>
+      <outgoing>sf_revisi_lpj_back</outgoing>
+    </serviceTask>
+    <userTask id="task_sahkan_lpj" name="Sahkan LPJ&#10;(Pengesahan Digital)" camunda:assignee="wd3">
+      <incoming>sf_kuitansi_ya</incoming>
+      <outgoing>sf_sahkan_lapor</outgoing>
+    </userTask>
+    <serviceTask id="svc_lapor_keuangan" name="Log &#38; Kirim LPJ&#10;ke Keuangan Pusat">
+      <extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="url">http://217.217.254.115:8900/submit-lpj</camunda:inputParameter>
+            <camunda:inputParameter name="method">POST</camunda:inputParameter>
+            <camunda:inputParameter name="payload">{"type":"lpj_final","processId":"${execution.processInstanceId}"}</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="Content-Type">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </extensionElements>
+      <incoming>sf_sahkan_lapor</incoming>
+      <outgoing>sf_lapor_end</outgoing>
+    </serviceTask>
+    <endEvent id="end_1" name="Selesai: Dana Dicairkan&#10;&#38; LPJ Terdokumentasi">
+      <incoming>sf_lapor_end</incoming>
+    </endEvent>
+    <sequenceFlow id="sf_start_kak" sourceRef="start_1" targetRef="task_isi_kak" />
+    <sequenceFlow id="sf_kak_to_fitri" sourceRef="task_isi_kak" targetRef="task_verif_kak" />
+    <sequenceFlow id="sf_fitri_gw" sourceRef="task_verif_kak" targetRef="gw_format" />
+    <sequenceFlow id="sf_format_tidak" name="Tidak" sourceRef="gw_format" targetRef="svc_notif_revisi_kak">
+      <conditionExpression xsi:type="tFormalExpression">${!formatLengkap}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_format_ya" name="Ya" sourceRef="gw_format" targetRef="task_verif_anggaran">
+      <conditionExpression xsi:type="tFormalExpression">${formatLengkap}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_anggaran_gw" sourceRef="task_verif_anggaran" targetRef="gw_anggaran" />
+    <sequenceFlow id="sf_anggaran_tidak" name="Tidak" sourceRef="gw_anggaran" targetRef="svc_notif_revisi_kak">
+      <conditionExpression xsi:type="tFormalExpression">${anggaranSesuai == false}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_anggaran_ya" name="Ya" sourceRef="gw_anggaran" targetRef="task_validasi_kak">
+      <conditionExpression xsi:type="tFormalExpression">${anggaranSesuai == true}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_wdiii_tidak" name="Tidak" sourceRef="gw_wdiii" targetRef="svc_notif_revisi_kak">
+      <conditionExpression xsi:type="tFormalExpression">${statusKAK == "Revisi"}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_wdiii_ya" name="Ya" sourceRef="gw_wdiii" targetRef="task_setuju_dekan">
+      <conditionExpression xsi:type="tFormalExpression">${statusKAK == "Disetujui"}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_dekan_gw" sourceRef="task_setuju_dekan" targetRef="gw_dekan" />
+    <sequenceFlow id="sf_dekan_tidak" name="Tidak" sourceRef="gw_dekan" targetRef="svc_notif_revisi_kak">
+      <conditionExpression xsi:type="tFormalExpression">${setujuKAK == false}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_dekan_ya" name="Ya" sourceRef="gw_dekan" targetRef="svc_notif_kak_approved">
+      <conditionExpression xsi:type="tFormalExpression">${setujuKAK == true}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_revisi_kak_back" sourceRef="svc_notif_revisi_kak" targetRef="task_isi_kak" />
+    <sequenceFlow id="sf_approved_laksana" sourceRef="svc_notif_kak_approved" targetRef="task_laksanakan" />
+    <sequenceFlow id="sf_laksana_upload" sourceRef="task_laksanakan" targetRef="task_upload_lpj" />
+    <sequenceFlow id="sf_timer_notif" sourceRef="boundary_timer_lpj" targetRef="svc_notif_lpj_reminder" />
+    <sequenceFlow id="sf_reminder_end" sourceRef="svc_notif_lpj_reminder" targetRef="end_timer" />
+    <sequenceFlow id="sf_lpj_to_fitri" sourceRef="task_upload_lpj" targetRef="task_verif_lpj" />
+    <sequenceFlow id="sf_lpj_fitri_gw" sourceRef="task_verif_lpj" targetRef="gw_lpj_lengkap" />
+    <sequenceFlow id="sf_lpj_tidak" name="Tidak" sourceRef="gw_lpj_lengkap" targetRef="svc_notif_revisi_lpj">
+      <conditionExpression xsi:type="tFormalExpression">${LPJLengkap == false}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_lpj_ya" name="Ya" sourceRef="gw_lpj_lengkap" targetRef="task_verif_kuitansi">
+      <conditionExpression xsi:type="tFormalExpression">${LPJLengkap == true}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_kuitansi_gw" sourceRef="task_verif_kuitansi" targetRef="gw_kuitansi" />
+    <sequenceFlow id="sf_kuitansi_tidak" name="Tidak" sourceRef="gw_kuitansi" targetRef="svc_notif_revisi_lpj">
+      <conditionExpression xsi:type="tFormalExpression">${kuitansiSah == false}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_kuitansi_ya" name="Ya" sourceRef="gw_kuitansi" targetRef="task_sahkan_lpj">
+      <conditionExpression xsi:type="tFormalExpression">${kuitansiSah == true}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_revisi_lpj_back" sourceRef="svc_notif_revisi_lpj" targetRef="task_upload_lpj" />
+    <sequenceFlow id="sf_sahkan_lapor" sourceRef="task_sahkan_lpj" targetRef="svc_lapor_keuangan" />
+    <sequenceFlow id="sf_lapor_end" sourceRef="svc_lapor_keuangan" targetRef="end_1" />
+    <businessRuleTask id="Activity_1cg88e3" name="Tentukan Status KAK" camunda:resultVariable="statusKAK" camunda:decisionRef="keputusanKAK" camunda:mapDecisionResult="singleEntry">
+      <incoming>Flow_13u07sg</incoming>
+      <outgoing>Flow_1qnrhb6</outgoing>
+    </businessRuleTask>
+    <sequenceFlow id="Flow_13u07sg" sourceRef="task_validasi_kak" targetRef="Activity_1cg88e3" />
+    <sequenceFlow id="Flow_1qnrhb6" sourceRef="Activity_1cg88e3" targetRef="gw_wdiii" />
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="ProsesCToBe">
+      <bpmndi:BPMNShape id="lane_dekan_di" bpmnElement="lane_dekan" isHorizontal="true">
+        <dc:Bounds x="160" y="810" width="3150" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_wdiii_di" bpmnElement="lane_wdiii" isHorizontal="true">
+        <dc:Bounds x="160" y="660" width="3150" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_suryadi_di" bpmnElement="lane_suryadi" isHorizontal="true">
+        <dc:Bounds x="160" y="510" width="3150" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_fitri_di" bpmnElement="lane_fitri" isHorizontal="true">
+        <dc:Bounds x="160" y="360" width="3150" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_sistem_di" bpmnElement="lane_sistem" isHorizontal="true">
+        <dc:Bounds x="160" y="240" width="3150" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_ormawa_di" bpmnElement="lane_ormawa" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="3150" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="start_1_di" bpmnElement="start_1">
+        <dc:Bounds x="242" y="151" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="230" y="194" width="66" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_isi_kak_di" bpmnElement="task_isi_kak">
+        <dc:Bounds x="320" y="129" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_verif_kak_di" bpmnElement="task_verif_kak">
+        <dc:Bounds x="500" y="395" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_format_di" bpmnElement="gw_format" isMarkerVisible="true">
+        <dc:Bounds x="670" y="410" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="655" y="467" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_verif_anggaran_di" bpmnElement="task_verif_anggaran">
+        <dc:Bounds x="770" y="545" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_anggaran_di" bpmnElement="gw_anggaran" isMarkerVisible="true">
+        <dc:Bounds x="940" y="560" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="925" y="617" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_validasi_kak_di" bpmnElement="task_validasi_kak">
+        <dc:Bounds x="1040" y="695" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_wdiii_di" bpmnElement="gw_wdiii" isMarkerVisible="true">
+        <dc:Bounds x="1345" y="710" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1405" y="721" width="38" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_setuju_dekan_di" bpmnElement="task_setuju_dekan">
+        <dc:Bounds x="1310" y="845" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_dekan_di" bpmnElement="gw_dekan" isMarkerVisible="true">
+        <dc:Bounds x="1480" y="860" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1465" y="917" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="svc_notif_revisi_kak_di" bpmnElement="svc_notif_revisi_kak">
+        <dc:Bounds x="740" y="260" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="svc_notif_kak_approved_di" bpmnElement="svc_notif_kak_approved">
+        <dc:Bounds x="1520" y="260" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_laksanakan_di" bpmnElement="task_laksanakan">
+        <dc:Bounds x="1680" y="129" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="svc_notif_lpj_reminder_di" bpmnElement="svc_notif_lpj_reminder">
+        <dc:Bounds x="1680" y="260" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_timer_di" bpmnElement="end_timer">
+        <dc:Bounds x="1862" y="282" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1860" y="325" width="45" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_upload_lpj_di" bpmnElement="task_upload_lpj">
+        <dc:Bounds x="1960" y="129" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_verif_lpj_di" bpmnElement="task_verif_lpj">
+        <dc:Bounds x="2140" y="395" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_lpj_lengkap_di" bpmnElement="gw_lpj_lengkap" isMarkerVisible="true">
+        <dc:Bounds x="2310" y="410" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2295" y="467" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_verif_kuitansi_di" bpmnElement="task_verif_kuitansi">
+        <dc:Bounds x="2410" y="545" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_kuitansi_di" bpmnElement="gw_kuitansi" isMarkerVisible="true">
+        <dc:Bounds x="2580" y="560" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2565" y="617" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="svc_notif_revisi_lpj_di" bpmnElement="svc_notif_revisi_lpj">
+        <dc:Bounds x="2380" y="260" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_sahkan_lpj_di" bpmnElement="task_sahkan_lpj">
+        <dc:Bounds x="2680" y="695" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="svc_lapor_keuangan_di" bpmnElement="svc_lapor_keuangan">
+        <dc:Bounds x="2850" y="260" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_1_di" bpmnElement="end_1">
+        <dc:Bounds x="3032" y="151" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3011" y="87.5" width="78" height="53" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_09unzva_di" bpmnElement="Activity_1cg88e3">
+        <dc:Bounds x="1190" y="695" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="boundary_timer_lpj_di" bpmnElement="boundary_timer_lpj">
+        <dc:Bounds x="1722" y="191" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1723" y="234" width="36" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="sf_start_kak_di" bpmnElement="sf_start_kak">
+        <di:waypoint x="278" y="169" />
+        <di:waypoint x="320" y="169" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_kak_to_fitri_di" bpmnElement="sf_kak_to_fitri">
+        <di:waypoint x="380" y="209" />
+        <di:waypoint x="380" y="435" />
+        <di:waypoint x="500" y="435" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_fitri_gw_di" bpmnElement="sf_fitri_gw">
+        <di:waypoint x="620" y="435" />
+        <di:waypoint x="670" y="435" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_format_tidak_di" bpmnElement="sf_format_tidak">
+        <di:waypoint x="695" y="410" />
+        <di:waypoint x="695" y="300" />
+        <di:waypoint x="740" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="700" y="350" width="27" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_format_ya_di" bpmnElement="sf_format_ya">
+        <di:waypoint x="720" y="435" />
+        <di:waypoint x="830" y="435" />
+        <di:waypoint x="830" y="545" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="725" y="415" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_anggaran_gw_di" bpmnElement="sf_anggaran_gw">
+        <di:waypoint x="890" y="585" />
+        <di:waypoint x="940" y="585" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_anggaran_tidak_di" bpmnElement="sf_anggaran_tidak">
+        <di:waypoint x="965" y="560" />
+        <di:waypoint x="965" y="300" />
+        <di:waypoint x="860" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="970" y="420" width="27" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_anggaran_ya_di" bpmnElement="sf_anggaran_ya">
+        <di:waypoint x="990" y="585" />
+        <di:waypoint x="1100" y="585" />
+        <di:waypoint x="1100" y="695" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="995" y="565" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_wdiii_tidak_di" bpmnElement="sf_wdiii_tidak">
+        <di:waypoint x="1370" y="710" />
+        <di:waypoint x="1370" y="300" />
+        <di:waypoint x="860" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1375" y="500" width="27" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_wdiii_ya_di" bpmnElement="sf_wdiii_ya">
+        <di:waypoint x="1370" y="760" />
+        <di:waypoint x="1370" y="845" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1376" y="763" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_dekan_gw_di" bpmnElement="sf_dekan_gw">
+        <di:waypoint x="1430" y="885" />
+        <di:waypoint x="1480" y="885" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_dekan_tidak_di" bpmnElement="sf_dekan_tidak">
+        <di:waypoint x="1505" y="860" />
+        <di:waypoint x="1505" y="300" />
+        <di:waypoint x="860" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1510" y="570" width="27" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_dekan_ya_di" bpmnElement="sf_dekan_ya">
+        <di:waypoint x="1530" y="885" />
+        <di:waypoint x="1580" y="885" />
+        <di:waypoint x="1580" y="340" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1529" y="865" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_revisi_kak_back_di" bpmnElement="sf_revisi_kak_back">
+        <di:waypoint x="800" y="260" />
+        <di:waypoint x="800" y="100" />
+        <di:waypoint x="380" y="100" />
+        <di:waypoint x="380" y="129" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_approved_laksana_di" bpmnElement="sf_approved_laksana">
+        <di:waypoint x="1580" y="260" />
+        <di:waypoint x="1580" y="169" />
+        <di:waypoint x="1680" y="169" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_laksana_upload_di" bpmnElement="sf_laksana_upload">
+        <di:waypoint x="1800" y="169" />
+        <di:waypoint x="1960" y="169" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_timer_notif_di" bpmnElement="sf_timer_notif">
+        <di:waypoint x="1740" y="227" />
+        <di:waypoint x="1740" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_reminder_end_di" bpmnElement="sf_reminder_end">
+        <di:waypoint x="1800" y="301" />
+        <di:waypoint x="1831" y="301" />
+        <di:waypoint x="1831" y="300" />
+        <di:waypoint x="1862" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_lpj_to_fitri_di" bpmnElement="sf_lpj_to_fitri">
+        <di:waypoint x="2020" y="209" />
+        <di:waypoint x="2020" y="435" />
+        <di:waypoint x="2140" y="435" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_lpj_fitri_gw_di" bpmnElement="sf_lpj_fitri_gw">
+        <di:waypoint x="2260" y="435" />
+        <di:waypoint x="2310" y="435" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_lpj_tidak_di" bpmnElement="sf_lpj_tidak">
+        <di:waypoint x="2335" y="410" />
+        <di:waypoint x="2335" y="300" />
+        <di:waypoint x="2380" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2340" y="350" width="27" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_lpj_ya_di" bpmnElement="sf_lpj_ya">
+        <di:waypoint x="2360" y="435" />
+        <di:waypoint x="2470" y="435" />
+        <di:waypoint x="2470" y="545" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2365" y="415" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_kuitansi_gw_di" bpmnElement="sf_kuitansi_gw">
+        <di:waypoint x="2530" y="585" />
+        <di:waypoint x="2580" y="585" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_kuitansi_tidak_di" bpmnElement="sf_kuitansi_tidak">
+        <di:waypoint x="2605" y="560" />
+        <di:waypoint x="2605" y="300" />
+        <di:waypoint x="2500" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2610" y="420" width="27" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_kuitansi_ya_di" bpmnElement="sf_kuitansi_ya">
+        <di:waypoint x="2630" y="585" />
+        <di:waypoint x="2740" y="585" />
+        <di:waypoint x="2740" y="695" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2635" y="565" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_revisi_lpj_back_di" bpmnElement="sf_revisi_lpj_back">
+        <di:waypoint x="2440" y="260" />
+        <di:waypoint x="2440" y="100" />
+        <di:waypoint x="2020" y="100" />
+        <di:waypoint x="2020" y="129" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_sahkan_lapor_di" bpmnElement="sf_sahkan_lapor">
+        <di:waypoint x="2800" y="735" />
+        <di:waypoint x="2910" y="735" />
+        <di:waypoint x="2910" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_lapor_end_di" bpmnElement="sf_lapor_end">
+        <di:waypoint x="2970" y="300" />
+        <di:waypoint x="3050" y="300" />
+        <di:waypoint x="3050" y="187" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13u07sg_di" bpmnElement="Flow_13u07sg">
+        <di:waypoint x="1160" y="735" />
+        <di:waypoint x="1190" y="735" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1qnrhb6_di" bpmnElement="Flow_1qnrhb6">
+        <di:waypoint x="1290" y="735" />
+        <di:waypoint x="1345" y="735" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

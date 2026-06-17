@@ -1,0 +1,66 @@
+{
+  "components": [
+    {
+      "text": "Kegiatan: {{namaKegiatan}} — {{namaOrmawa}}",
+      "type": "text",
+      "layout": {
+        "row": "Row_0igpf6m",
+        "columns": null
+      },
+      "id": "Field_0ru59bt"
+    },
+    {
+      "text": "Total Anggaran: Rp {{totalAnggaran}}",
+      "type": "text",
+      "layout": {
+        "row": "Row_1dcsnpt",
+        "columns": null
+      },
+      "id": "Field_1r6vnee"
+    },
+    {
+      "text": "Verifikasi Fitri: {{catatanFitri}}",
+      "type": "text",
+      "layout": {
+        "row": "Row_0gp5sa8",
+        "columns": null
+      },
+      "id": "Field_0dk8d2r"
+    },
+    {
+      "text": "Verifikasi Suryadi: {{catatanSuryadi}}",
+      "type": "text",
+      "layout": {
+        "row": "Row_02wvseq",
+        "columns": null
+      },
+      "id": "Field_1y6hj0x"
+    },
+    {
+      "label": "Kegiatan sesuai dengan IKU Fakultas?",
+      "type": "checkbox",
+      "layout": {
+        "row": "Row_0t8mcj6",
+        "columns": null
+      },
+      "id": "Field_0oxxv29",
+      "key": "sesuaiIKU",
+      "validate": {
+        "required": false
+      }
+    },
+    {
+      "label": "Catatan WD III (isi jika perlu revisi)",
+      "type": "textarea",
+      "layout": {
+        "row": "Row_0qhn24j",
+        "columns": null
+      },
+      "id": "Field_09u8rpg",
+      "key": "catatanWDIII"
+    }
+  ],
+  "schemaVersion": 19,
+  "type": "default",
+  "id": "form-validasi-wdiii"
+}

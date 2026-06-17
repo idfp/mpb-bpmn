@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.44.0">
+  <process id="ProsesGToBe" name="To-Be: Penyusunan Laporan Kinerja (LAKIN)" isExecutable="true" camunda:historyTimeToLive="180">
+    <laneSet id="laneSet_1">
+      <lane id="lane_wadek" name="Warek III (Penerima Laporan)">
+        <flowNodeRef>task_terima_lakin</flowNodeRef>
+        <flowNodeRef>end_1</flowNodeRef>
+      </lane>
+      <lane id="lane_sistem" name="Sistem Portal">
+        <flowNodeRef>svc_request_tracer</flowNodeRef>
+        <flowNodeRef>svc_notif_lakin</flowNodeRef>
+      </lane>
+      <lane id="lane_wdiii" name="WD III (Wakil Dekan Kemahasiswaan)">
+        <flowNodeRef>task_verif_tracer</flowNodeRef>
+        <flowNodeRef>gw_tracer</flowNodeRef>
+        <flowNodeRef>Activity_0tc1lbm</flowNodeRef>
+      </lane>
+      <lane id="lane_fitri" name="Mbak Fitri (Staf Administrasi)">
+        <flowNodeRef>start_1</flowNodeRef>
+        <flowNodeRef>task_input_data</flowNodeRef>
+        <flowNodeRef>task_siapkan_rekap</flowNodeRef>
+      </lane>
+    </laneSet>
+    <startEvent id="start_1" name="Awal Tahun: Mulai&#10;Input Data Kontinu">
+      <outgoing>sf_start_input</outgoing>
+    </startEvent>
+    <userTask id="task_input_data" name="Input &#38; Update Data Kegiatan,&#10;Kerjasama &#38; Prestasi (Kontinu)" camunda:assignee="fitri">
+      <incoming>sf_start_input</incoming>
+      <outgoing>Flow_0tt9yjr</outgoing>
+    </userTask>
+    <userTask id="task_siapkan_rekap" name="Siapkan Rekap Data&#10;Lengkap untuk WD III" camunda:assignee="fitri">
+      <incoming>Flow_0tt9yjr</incoming>
+      <outgoing>sf_siapkan_request</outgoing>
+    </userTask>
+    <serviceTask id="svc_request_tracer" name="Kirim Request Data Tracer&#10;ke Platform CDE">
+      <extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="url">http://217.217.254.115:8900/notify</camunda:inputParameter>
+            <camunda:inputParameter name="method">POST</camunda:inputParameter>
+            <camunda:inputParameter name="payload">{"recipient":"cde_platform","type":"tracer_data_request","processId":"${execution.processInstanceId}"}</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="Content-Type">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </extensionElements>
+      <incoming>sf_siapkan_request</incoming>
+      <incoming>sf_tracer_tidak</incoming>
+      <outgoing>sf_request_verif</outgoing>
+    </serviceTask>
+    <userTask id="task_verif_tracer" name="Verifikasi &#38; Terima&#10;Data Tracer dari CDE" camunda:assignee="wd3">
+      <extensionElements>
+        <camunda:formData>
+          <camunda:formField id="dataTracerLengkap" label="Apakah data tracer tersedia dan lengkap?" type="boolean" defaultValue="false" />
+        </camunda:formData>
+      </extensionElements>
+      <incoming>sf_request_verif</incoming>
+      <outgoing>sf_verif_gw</outgoing>
+    </userTask>
+    <exclusiveGateway id="gw_tracer" name="Data Tracer&#10;Tersedia &#38; Lengkap?">
+      <incoming>sf_verif_gw</incoming>
+      <outgoing>sf_tracer_tidak</outgoing>
+      <outgoing>Flow_0790cj4</outgoing>
+    </exclusiveGateway>
+    <serviceTask id="svc_notif_lakin" name="Kirim Notifikasi LAKIN&#10;ke Wadek III">
+      <extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="url">http://217.217.254.115:8900/notify</camunda:inputParameter>
+            <camunda:inputParameter name="method">POST</camunda:inputParameter>
+            <camunda:inputParameter name="payload">{"recipient":"wadek3","type":"lakin_submission","processId":"${execution.processInstanceId}"}</camunda:inputParameter>
+            <camunda:inputParameter name="headers">
+              <camunda:map>
+                <camunda:entry key="Content-Type">application/json</camunda:entry>
+              </camunda:map>
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </extensionElements>
+      <incoming>Flow_0dlw5ir</incoming>
+      <outgoing>sf_notif_terima</outgoing>
+    </serviceTask>
+    <userTask id="task_terima_lakin" name="Terima &#38; Tanda Terima&#10;LAKIN" camunda:assignee="wadek3">
+      <incoming>sf_notif_terima</incoming>
+      <outgoing>sf_terima_end</outgoing>
+    </userTask>
+    <endEvent id="end_1" name="LAKIN Diterima&#10;Wadek III">
+      <incoming>sf_terima_end</incoming>
+    </endEvent>
+    <sequenceFlow id="sf_start_input" sourceRef="start_1" targetRef="task_input_data" />
+    <sequenceFlow id="sf_siapkan_request" sourceRef="task_siapkan_rekap" targetRef="svc_request_tracer" />
+    <sequenceFlow id="sf_request_verif" sourceRef="svc_request_tracer" targetRef="task_verif_tracer" />
+    <sequenceFlow id="sf_verif_gw" sourceRef="task_verif_tracer" targetRef="gw_tracer" />
+    <sequenceFlow id="sf_tracer_tidak" name="Tidak" sourceRef="gw_tracer" targetRef="svc_request_tracer">
+      <conditionExpression xsi:type="tFormalExpression">${dataTracerLengkap == false}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_notif_terima" sourceRef="svc_notif_lakin" targetRef="task_terima_lakin" />
+    <sequenceFlow id="sf_terima_end" sourceRef="task_terima_lakin" targetRef="end_1" />
+    <subProcess id="Activity_0tc1lbm" name="Penyusunan LAKIN">
+      <incoming>Flow_0790cj4</incoming>
+      <outgoing>Flow_0dlw5ir</outgoing>
+      <startEvent id="Event_08bvkfm">
+        <outgoing>Flow_00p9bpl</outgoing>
+      </startEvent>
+      <userTask id="task_susun_lakin" name="Susun LAKIN per Bidang&#10;(Kemahasiswaan, Alumni, Kerjasama)" camunda:assignee="wd3">
+        <incoming>Flow_00p9bpl</incoming>
+        <outgoing>sf_susun_review</outgoing>
+      </userTask>
+      <userTask id="task_review_lakin" name="Review &#38; Finalisasi&#10;LAKIN" camunda:assignee="wd3">
+        <incoming>sf_susun_review</incoming>
+        <outgoing>Flow_05ifndc</outgoing>
+      </userTask>
+      <sequenceFlow id="sf_susun_review" sourceRef="task_susun_lakin" targetRef="task_review_lakin" />
+      <sequenceFlow id="Flow_00p9bpl" sourceRef="Event_08bvkfm" targetRef="task_susun_lakin" />
+      <endEvent id="Event_08v0390">
+        <incoming>Flow_05ifndc</incoming>
+      </endEvent>
+      <sequenceFlow id="Flow_05ifndc" sourceRef="task_review_lakin" targetRef="Event_08v0390" />
+    </subProcess>
+    <sequenceFlow id="Flow_0790cj4" name="Ya" sourceRef="gw_tracer" targetRef="Activity_0tc1lbm">
+      <conditionExpression xsi:type="tFormalExpression">${dataTracerLengkap == true}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="Flow_0dlw5ir" sourceRef="Activity_0tc1lbm" targetRef="svc_notif_lakin" />
+    <sequenceFlow id="Flow_0tt9yjr" sourceRef="task_input_data" targetRef="task_siapkan_rekap" />
+    <textAnnotation id="ann_input">
+      <text>Data diinput via form portal sepanjang tahun; menggantikan input manual ke Google Sheet. Tiga komponen: KAK/LPJ, PKS &amp; IA, prestasi mahasiswa.</text>
+    </textAnnotation>
+    <association id="assoc_input" sourceRef="task_input_data" targetRef="ann_input" />
+    <textAnnotation id="ann_tracer">
+      <text>Request data tracer ke CDE via notification API; menggantikan koordinasi informal. Loop kembali jika data belum tersedia.</text>
+    </textAnnotation>
+    <association id="assoc_tracer" sourceRef="svc_request_tracer" targetRef="ann_tracer" />
+    <textAnnotation id="ann_terima">
+      <text>Penerimaan LAKIN terdokumentasi di sistem dengan tanda terima digital; menggantikan penyerahan hard copy manual</text>
+    </textAnnotation>
+    <association id="assoc_terima" sourceRef="task_terima_lakin" targetRef="ann_terima" />
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="ProsesGToBe">
+      <bpmndi:BPMNShape id="lane_fitri_di" bpmnElement="lane_fitri" isHorizontal="true">
+        <dc:Bounds x="160" y="180" width="1630" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_wdiii_di" bpmnElement="lane_wdiii" isHorizontal="true">
+        <dc:Bounds x="160" y="340" width="1630" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_sistem_di" bpmnElement="lane_sistem" isHorizontal="true">
+        <dc:Bounds x="160" y="500" width="1630" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_wadek_di" bpmnElement="lane_wadek" isHorizontal="true">
+        <dc:Bounds x="160" y="620" width="1630" height="150" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="start_1_di" bpmnElement="start_1">
+        <dc:Bounds x="232" y="232" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="209" y="275" width="89" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_input_data_di" bpmnElement="task_input_data">
+        <dc:Bounds x="310" y="210" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_siapkan_rekap_di" bpmnElement="task_siapkan_rekap">
+        <dc:Bounds x="590" y="210" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="svc_request_tracer_di" bpmnElement="svc_request_tracer">
+        <dc:Bounds x="750" y="520" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_verif_tracer_di" bpmnElement="task_verif_tracer">
+        <dc:Bounds x="900" y="379" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_tracer_di" bpmnElement="gw_tracer" isMarkerVisible="true">
+        <dc:Bounds x="1070" y="394" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1066" y="454" width="58" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="svc_notif_lakin_di" bpmnElement="svc_notif_lakin">
+        <dc:Bounds x="1180" y="520" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_terima_lakin_di" bpmnElement="task_terima_lakin">
+        <dc:Bounds x="1270" y="640" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_1_di" bpmnElement="end_1">
+        <dc:Bounds x="1442" y="668" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1422" y="711" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0tc1lbm_di" bpmnElement="Activity_0tc1lbm" isExpanded="false">
+        <dc:Bounds x="1190" y="379" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_input_di" bpmnElement="ann_input">
+        <dc:Bounds x="280" y="80" width="260" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_tracer_di" bpmnElement="ann_tracer">
+        <dc:Bounds x="730" y="790" width="250" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_terima_di" bpmnElement="ann_terima">
+        <dc:Bounds x="1530" y="797" width="240" height="73" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="sf_start_input_di" bpmnElement="sf_start_input">
+        <di:waypoint x="268" y="250" />
+        <di:waypoint x="310" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_siapkan_request_di" bpmnElement="sf_siapkan_request">
+        <di:waypoint x="710" y="250" />
+        <di:waypoint x="730" y="250" />
+        <di:waypoint x="730" y="560" />
+        <di:waypoint x="750" y="560" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_request_verif_di" bpmnElement="sf_request_verif">
+        <di:waypoint x="870" y="560" />
+        <di:waypoint x="960" y="560" />
+        <di:waypoint x="960" y="459" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_verif_gw_di" bpmnElement="sf_verif_gw">
+        <di:waypoint x="1020" y="419" />
+        <di:waypoint x="1070" y="419" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_tracer_tidak_di" bpmnElement="sf_tracer_tidak">
+        <di:waypoint x="1095" y="394" />
+        <di:waypoint x="1095" y="360" />
+        <di:waypoint x="810" y="360" />
+        <di:waypoint x="810" y="520" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="940" y="340" width="27" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_notif_terima_di" bpmnElement="sf_notif_terima">
+        <di:waypoint x="1300" y="560" />
+        <di:waypoint x="1330" y="560" />
+        <di:waypoint x="1330" y="640" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_terima_end_di" bpmnElement="sf_terima_end">
+        <di:waypoint x="1390" y="685" />
+        <di:waypoint x="1442" y="685" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0790cj4_di" bpmnElement="Flow_0790cj4">
+        <di:waypoint x="1120" y="419" />
+        <di:waypoint x="1190" y="419" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1149" y="401" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0dlw5ir_di" bpmnElement="Flow_0dlw5ir">
+        <di:waypoint x="1240" y="459" />
+        <di:waypoint x="1240" y="520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0tt9yjr_di" bpmnElement="Flow_0tt9yjr">
+        <di:waypoint x="430" y="250" />
+        <di:waypoint x="590" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_input_di" bpmnElement="assoc_input">
+        <di:waypoint x="370" y="210" />
+        <di:waypoint x="370" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_tracer_di" bpmnElement="assoc_tracer">
+        <di:waypoint x="807" y="600" />
+        <di:waypoint x="792" y="790" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_terima_di" bpmnElement="assoc_terima">
+        <di:waypoint x="1389" y="715" />
+        <di:waypoint x="1530" y="798" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_13jt52j">
+    <bpmndi:BPMNPlane id="BPMNPlane_0cx9bxp" bpmnElement="Activity_0tc1lbm">
+      <bpmndi:BPMNShape id="Event_08bvkfm_di" bpmnElement="Event_08bvkfm">
+        <dc:Bounds x="180" y="182" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_susun_lakin_di" bpmnElement="task_susun_lakin">
+        <dc:Bounds x="258" y="160" width="120" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_review_lakin_di" bpmnElement="task_review_lakin">
+        <dc:Bounds x="418" y="160" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_08v0390_di" bpmnElement="Event_08v0390">
+        <dc:Bounds x="580" y="182" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="sf_susun_review_di" bpmnElement="sf_susun_review">
+        <di:waypoint x="378" y="200" />
+        <di:waypoint x="418" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_00p9bpl_di" bpmnElement="Flow_00p9bpl">
+        <di:waypoint x="216" y="200" />
+        <di:waypoint x="258" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_05ifndc_di" bpmnElement="Flow_05ifndc">
+        <di:waypoint x="538" y="200" />
+        <di:waypoint x="580" y="200" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

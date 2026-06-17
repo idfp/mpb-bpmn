@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:camunda="http://camunda.org/schema/1.0/dmn" id="keputusanKAKDMN" name="KAK" namespace="http://camunda.org/schema/1.0/dmn">
+  <decision id="keputusanKAK" name="KAK" camunda:historyTimeToLive="180">
+    <variable id="InformationItem_0eph0mi" name="KAK" typeRef="string" />
+    <decisionTable id="DecisionTable_0sahd13" hitPolicy="FIRST">
+      <input id="InputClause_0k5er42" label="Format Lengkap">
+        <inputExpression id="LiteralExpression_0qnz0y2" typeRef="boolean">
+          <text>formatLengkap</text>
+        </inputExpression>
+      </input>
+      <input id="InputClause_0lq8kvd" label="Anggaran Sesuai SBM ">
+        <inputExpression id="LiteralExpression_15el0ta" typeRef="boolean">
+          <text>anggaranSesuai</text>
+        </inputExpression>
+      </input>
+      <input id="InputClause_1hzi87z" label="Sesuai IKU">
+        <inputExpression id="LiteralExpression_0ddw7df" typeRef="boolean">
+          <text>sesuaiIKU</text>
+        </inputExpression>
+      </input>
+      <output id="OutputClause_1ix97p8" label="Status KAK " name="statusKAK" typeRef="string" />
+      <rule id="DecisionRule_0to47ms">
+        <inputEntry id="UnaryTests_0ghczl5">
+          <text>true</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0iupv8h">
+          <text>true</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_06am1oi">
+          <text>true</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_06xd8l2">
+          <text>"Disetujui"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1rifmg0">
+        <inputEntry id="UnaryTests_076m3l7">
+          <text>true</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1da0uh8">
+          <text>true</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_11cz536">
+          <text>false</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0gp5zy3">
+          <text>"Revisi"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_042wylj">
+        <inputEntry id="UnaryTests_0b7ypgh">
+          <text>true</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1sl45kj">
+          <text>false</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_01y3i0u">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0ihhm6t">
+          <text>"Revisi"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0toi1zx">
+        <inputEntry id="UnaryTests_0u4txmn">
+          <text>false</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0b0oo02">
+          <text></text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1r41dbx">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0mpgkzz">
+          <text>"Revisi"</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram>
+      <dmndi:DMNShape id="DMNShape_17fhosj" dmnElementRef="keputusanKAK">
+        <dc:Bounds height="80" width="180" x="50" y="-10" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

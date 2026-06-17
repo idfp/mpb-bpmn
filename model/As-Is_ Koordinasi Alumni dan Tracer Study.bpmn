@@ -1,0 +1,503 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.44.0">
+  <process id="ProsesDAsIs" name="As-Is: Koordinasi Alumni dan Tracer Study" isExecutable="false">
+    <laneSet id="ls1">
+      <lane id="lane_ikatan" name="Ikatan Alumni (Ketua)">
+        <flowNodeRef>task_koordinasi_ikatan</flowNodeRef>
+      </lane>
+      <lane id="lane_cde" name="Platform CDE (Universitas)">
+        <flowNodeRef>task_kirim_link</flowNodeRef>
+        <flowNodeRef>task_kumpulkan_data</flowNodeRef>
+        <flowNodeRef>msg_catch_data</flowNodeRef>
+        <flowNodeRef>task_berikan_rekap</flowNodeRef>
+      </lane>
+      <lane id="lane_alumni" name="Alumni">
+        <flowNodeRef>task_isi_tracer</flowNodeRef>
+        <flowNodeRef>task_hadiri_forum</flowNodeRef>
+        <flowNodeRef>msg_catch_link</flowNodeRef>
+        <flowNodeRef>msg_throw_data</flowNodeRef>
+      </lane>
+      <lane id="lane_dosenpa" name="Dosen PA">
+        <flowNodeRef>task_dosen_wa_alumni</flowNodeRef>
+      </lane>
+      <lane id="lane_wdiii" name="WD III (Wakil Dekan Kemahasiswaan)">
+        <flowNodeRef>task_analisis_tracer</flowNodeRef>
+        <flowNodeRef>task_undang_forum</flowNodeRef>
+        <flowNodeRef>task_bahas_rtm</flowNodeRef>
+        <flowNodeRef>task_lapor_wadek</flowNodeRef>
+        <flowNodeRef>task_koordinasi_cde</flowNodeRef>
+        <flowNodeRef>gw_parallel_split</flowNodeRef>
+        <flowNodeRef>task_wa_alumni</flowNodeRef>
+        <flowNodeRef>gw_peninjauan_kurikulum</flowNodeRef>
+        <flowNodeRef>end_1</flowNodeRef>
+        <flowNodeRef>start_1</flowNodeRef>
+        <flowNodeRef>gw_respons_cukup</flowNodeRef>
+        <flowNodeRef>gw_parallel_join</flowNodeRef>
+        <flowNodeRef>task_request_rekap</flowNodeRef>
+      </lane>
+    </laneSet>
+    <dataStoreReference id="ds_cde" name="Platform CDE&#10;(Universitas - Bu Catur)" />
+    <dataStoreReference id="ds_sheet" name="Google Spreadsheet&#10;Monitoring" />
+    <startEvent id="start_1" name="Periode Pengumpulan&#10;Data Tracer Study">
+      <outgoing>sf_start_koordinasi</outgoing>
+    </startEvent>
+    <task id="task_koordinasi_cde" name="Koordinasi dengan Bu Catur (CDE)&#10;untuk Aktivasi Link Tracer">
+      <incoming>sf_start_koordinasi</incoming>
+      <outgoing>sf_to_split</outgoing>
+    </task>
+    <parallelGateway id="gw_parallel_split" name="Inisiasi&#10;Paralel">
+      <incoming>sf_to_split</incoming>
+      <outgoing>sf_koordinasi_kirimlink</outgoing>
+      <outgoing>sf_koordinasi_wa</outgoing>
+    </parallelGateway>
+    <task id="task_kirim_link" name="Kirim Link Tracer Study&#10;ke Alumni (via Email)">
+      <incoming>sf_koordinasi_kirimlink</incoming>
+      <outgoing>sf_kirimlink_catch</outgoing>
+      <dataOutputAssociation id="doa_cde1">
+        <targetRef>ds_cde</targetRef>
+      </dataOutputAssociation>
+    </task>
+    <intermediateCatchEvent id="msg_catch_link" name="Terima Link&#10;Tracer Study">
+      <incoming>sf_kirimlink_catch</incoming>
+      <outgoing>sf_catch_isitracer</outgoing>
+      <messageEventDefinition id="med_catch_link" />
+    </intermediateCatchEvent>
+    <task id="task_isi_tracer" name="Isi Form&#10;Tracer Study">
+      <incoming>sf_catch_isitracer</incoming>
+      <outgoing>sf_isitracer_throw</outgoing>
+    </task>
+    <intermediateThrowEvent id="msg_throw_data" name="Submit Data&#10;Tracer">
+      <incoming>sf_isitracer_throw</incoming>
+      <outgoing>sf_throw_catchdata</outgoing>
+      <messageEventDefinition id="med_throw_data" />
+    </intermediateThrowEvent>
+    <intermediateCatchEvent id="msg_catch_data" name="Terima Data&#10;Tracer Alumni">
+      <incoming>sf_throw_catchdata</incoming>
+      <outgoing>sf_catchdata_kumpulkan</outgoing>
+      <messageEventDefinition id="med_catch_data" />
+    </intermediateCatchEvent>
+    <task id="task_kumpulkan_data" name="Kumpulkan &#38; Rekap&#10;Data Tracer">
+      <incoming>sf_catchdata_kumpulkan</incoming>
+      <outgoing>sf_kumpulkan_to_join</outgoing>
+      <dataOutputAssociation id="doa_cde2">
+        <targetRef>ds_cde</targetRef>
+      </dataOutputAssociation>
+    </task>
+    <task id="task_wa_alumni" name="Hubungi Alumni Satu per Satu&#10;via WA (Personal)">
+      <incoming>sf_koordinasi_wa</incoming>
+      <outgoing>sf_wa_dosenpa</outgoing>
+    </task>
+    <task id="task_dosen_wa_alumni" name="Hubungi Alumni via WA&#10;(dari Dosen PA masing-masing)">
+      <incoming>sf_wa_dosenpa</incoming>
+      <outgoing>sf_dosenpa_to_join</outgoing>
+    </task>
+    <parallelGateway id="gw_parallel_join" name="Join&#10;Paralel">
+      <incoming>sf_kumpulkan_to_join</incoming>
+      <incoming>sf_dosenpa_to_join</incoming>
+      <outgoing>sf_join_to_request</outgoing>
+    </parallelGateway>
+    <task id="task_request_rekap" name="Request Rekap Data Tracer&#10;dari Bu Catur (CDE)">
+      <incoming>sf_join_to_request</incoming>
+      <outgoing>sf_request_berikan</outgoing>
+    </task>
+    <task id="task_berikan_rekap" name="Berikan Rekap Data&#10;Tracer ke WD III">
+      <incoming>sf_request_berikan</incoming>
+      <outgoing>sf_berikan_gw</outgoing>
+      <dataInputAssociation id="dia_cde1">
+        <sourceRef>ds_cde</sourceRef>
+      </dataInputAssociation>
+    </task>
+    <exclusiveGateway id="gw_respons_cukup" name="Respons Rate&#10;Cukup?">
+      <incoming>sf_berikan_gw</incoming>
+      <outgoing>sf_cukup_analisis</outgoing>
+      <outgoing>sf_belum_wa</outgoing>
+    </exclusiveGateway>
+    <task id="task_analisis_tracer" name="Analisis Data Tracer Study&#10;(Pekerjaan, Bidang, dll.)">
+      <incoming>sf_cukup_analisis</incoming>
+      <outgoing>sf_analisis_gw_kurikulum</outgoing>
+      <dataInputAssociation id="dia_sheet1">
+        <sourceRef>ds_sheet</sourceRef>
+      </dataInputAssociation>
+    </task>
+    <exclusiveGateway id="gw_peninjauan_kurikulum" name="Tahun Peninjauan&#10;Kurikulum? (2 thn)">
+      <incoming>sf_analisis_gw_kurikulum</incoming>
+      <outgoing>sf_ya_undang</outgoing>
+      <outgoing>sf_tidak_rtm</outgoing>
+    </exclusiveGateway>
+    <task id="task_undang_forum" name="Undang Alumni &#38; Mitra Industri&#10;ke Forum Peninjauan Kurikulum">
+      <incoming>sf_ya_undang</incoming>
+      <outgoing>sf_undang_hadiri</outgoing>
+    </task>
+    <task id="task_hadiri_forum" name="Hadiri Forum Peninjauan&#10;Kurikulum">
+      <incoming>sf_undang_hadiri</incoming>
+      <outgoing>sf_hadiri_ikatan</outgoing>
+    </task>
+    <task id="task_koordinasi_ikatan" name="Koordinasi dengan Ketua&#10;Ikatan Alumni (Situasional)">
+      <incoming>sf_hadiri_ikatan</incoming>
+      <outgoing>sf_ikatan_rtm</outgoing>
+    </task>
+    <task id="task_bahas_rtm" name="Bahas Hasil Tracer di RTM&#10;(Rapat Tinjauan Manajemen)">
+      <incoming>sf_tidak_rtm</incoming>
+      <incoming>sf_ikatan_rtm</incoming>
+      <outgoing>sf_rtm_lapor</outgoing>
+    </task>
+    <task id="task_lapor_wadek" name="Laporkan Data Tracer ke&#10;Wadek III / Input ke LAKIN">
+      <incoming>sf_rtm_lapor</incoming>
+      <outgoing>sf_lapor_end</outgoing>
+    </task>
+    <endEvent id="end_1" name="Data Tracer Selesai&#10;Dikumpulkan &#38; Dilaporkan">
+      <incoming>sf_lapor_end</incoming>
+    </endEvent>
+    <sequenceFlow id="sf_start_koordinasi" sourceRef="start_1" targetRef="task_koordinasi_cde" />
+    <sequenceFlow id="sf_to_split" sourceRef="task_koordinasi_cde" targetRef="gw_parallel_split" />
+    <sequenceFlow id="sf_koordinasi_kirimlink" sourceRef="gw_parallel_split" targetRef="task_kirim_link" />
+    <sequenceFlow id="sf_koordinasi_wa" sourceRef="gw_parallel_split" targetRef="task_wa_alumni" />
+    <sequenceFlow id="sf_kirimlink_catch" sourceRef="task_kirim_link" targetRef="msg_catch_link" />
+    <sequenceFlow id="sf_catch_isitracer" sourceRef="msg_catch_link" targetRef="task_isi_tracer" />
+    <sequenceFlow id="sf_isitracer_throw" sourceRef="task_isi_tracer" targetRef="msg_throw_data" />
+    <sequenceFlow id="sf_throw_catchdata" sourceRef="msg_throw_data" targetRef="msg_catch_data" />
+    <sequenceFlow id="sf_catchdata_kumpulkan" sourceRef="msg_catch_data" targetRef="task_kumpulkan_data" />
+    <sequenceFlow id="sf_kumpulkan_to_join" sourceRef="task_kumpulkan_data" targetRef="gw_parallel_join" />
+    <sequenceFlow id="sf_wa_dosenpa" sourceRef="task_wa_alumni" targetRef="task_dosen_wa_alumni" />
+    <sequenceFlow id="sf_dosenpa_to_join" sourceRef="task_dosen_wa_alumni" targetRef="gw_parallel_join" />
+    <sequenceFlow id="sf_join_to_request" sourceRef="gw_parallel_join" targetRef="task_request_rekap" />
+    <sequenceFlow id="sf_request_berikan" sourceRef="task_request_rekap" targetRef="task_berikan_rekap" />
+    <sequenceFlow id="sf_berikan_gw" sourceRef="task_berikan_rekap" targetRef="gw_respons_cukup" />
+    <sequenceFlow id="sf_cukup_analisis" name="Ya" sourceRef="gw_respons_cukup" targetRef="task_analisis_tracer">
+      <conditionExpression>Respons rate cukup</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_belum_wa" name="Tidak" sourceRef="gw_respons_cukup" targetRef="gw_parallel_split">
+      <conditionExpression>Respons belum cukup → kejar manual</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_analisis_gw_kurikulum" sourceRef="task_analisis_tracer" targetRef="gw_peninjauan_kurikulum" />
+    <sequenceFlow id="sf_ya_undang" name="Ya" sourceRef="gw_peninjauan_kurikulum" targetRef="task_undang_forum">
+      <conditionExpression>Ya (tahun peninjauan)</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_tidak_rtm" name="Tidak" sourceRef="gw_peninjauan_kurikulum" targetRef="task_bahas_rtm">
+      <conditionExpression>Tidak (bukan tahun peninjauan)</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_undang_hadiri" sourceRef="task_undang_forum" targetRef="task_hadiri_forum" />
+    <sequenceFlow id="sf_hadiri_ikatan" sourceRef="task_hadiri_forum" targetRef="task_koordinasi_ikatan" />
+    <sequenceFlow id="sf_ikatan_rtm" sourceRef="task_koordinasi_ikatan" targetRef="task_bahas_rtm" />
+    <sequenceFlow id="sf_rtm_lapor" sourceRef="task_bahas_rtm" targetRef="task_lapor_wadek" />
+    <sequenceFlow id="sf_lapor_end" sourceRef="task_lapor_wadek" targetRef="end_1" />
+    <textAnnotation id="ann_cde">
+      <text>FIK tidak bisa akses data CDE secara mandiri; harus koordinasi langsung dengan Bu Catur di tingkat universitas</text>
+    </textAnnotation>
+    <association id="assoc_cde" sourceRef="task_koordinasi_cde" targetRef="ann_cde" />
+    <textAnnotation id="ann_respons">
+      <text>Respons alumni sangat rendah; banyak yang tidak mengisi meskipun sudah dikirim link</text>
+    </textAnnotation>
+    <association id="assoc_respons" sourceRef="task_isi_tracer" targetRef="ann_respons" />
+    <textAnnotation id="ann_wa">
+      <text>Pendekatan personal via WA efektif tapi tidak skalabel; tidak ada tim khusus tracer (berbeda dengan Fakultas Teknik yang sudah punya SK tim tracer)</text>
+    </textAnnotation>
+    <association id="assoc_wa" sourceRef="task_wa_alumni" targetRef="ann_wa" />
+    <textAnnotation id="ann_kurikulum">
+      <text>Peninjauan kurikulum dilakukan 2 tahun sekali; alumni diundang bersama mitra industri dan kerjasama untuk memberi masukan kebutuhan industri</text>
+    </textAnnotation>
+    <association id="assoc_kurikulum" sourceRef="task_undang_forum" targetRef="ann_kurikulum" />
+    <textAnnotation id="ann_ikatan">
+      <text>Koordinasi dengan Ikatan Alumni tidak terjadwal rutin; Ketua baru (Pak Arana) baru terpilih — berencana event besar untuk seluruh alumni</text>
+    </textAnnotation>
+    <textAnnotation id="ann_rtm">
+      <text>Hasil tracer dan tindak lanjut dicatat di RTM tingkat fakultas; ini satu-satunya dokumentasi formal yang ada</text>
+    </textAnnotation>
+    <association id="assoc_rtm" sourceRef="task_bahas_rtm" targetRef="ann_rtm" />
+    <association id="Association_01iiswz" associationDirection="None" sourceRef="ann_ikatan" targetRef="task_koordinasi_ikatan" />
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_D">
+    <bpmndi:BPMNPlane id="BPMNPlane_D" bpmnElement="ProsesDAsIs">
+      <bpmndi:BPMNShape id="lane_wdiii_di" bpmnElement="lane_wdiii" isHorizontal="true">
+        <dc:Bounds x="160" y="190" width="2060" height="180" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_dosenpa_di" bpmnElement="lane_dosenpa" isHorizontal="true">
+        <dc:Bounds x="160" y="370" width="2060" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_alumni_di" bpmnElement="lane_alumni" isHorizontal="true">
+        <dc:Bounds x="160" y="500" width="2060" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_cde_di" bpmnElement="lane_cde" isHorizontal="true">
+        <dc:Bounds x="160" y="650" width="2060" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_ikatan_di" bpmnElement="lane_ikatan" isHorizontal="true">
+        <dc:Bounds x="160" y="800" width="2060" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ds_cde_di" bpmnElement="ds_cde" isDataStoreReference="true">
+        <dc:Bounds x="205" y="695" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="198" y="753" width="68" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ds_sheet_di" bpmnElement="ds_sheet" isDataStoreReference="true">
+        <dc:Bounds x="205" y="245" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="201" y="303" width="63" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="start_1_di" bpmnElement="start_1">
+        <dc:Bounds x="292" y="261" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="269" y="304" width="89" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_koordinasi_cde_di" bpmnElement="task_koordinasi_cde">
+        <dc:Bounds x="370" y="239" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_parallel_split_di" bpmnElement="gw_parallel_split" isMarkerVisible="true">
+        <dc:Bounds x="540" y="254" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="525" y="311" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_kirim_link_di" bpmnElement="task_kirim_link">
+        <dc:Bounds x="500" y="685" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="msg_catch_link_di" bpmnElement="msg_catch_link">
+        <dc:Bounds x="502" y="557" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="488" y="519.5" width="63" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_isi_tracer_di" bpmnElement="task_isi_tracer">
+        <dc:Bounds x="580" y="535" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="msg_throw_data_di" bpmnElement="msg_throw_data">
+        <dc:Bounds x="752" y="557" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="739" y="519.5" width="61" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="msg_catch_data_di" bpmnElement="msg_catch_data">
+        <dc:Bounds x="752" y="687" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="738" y="730" width="68" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_kumpulkan_data_di" bpmnElement="task_kumpulkan_data">
+        <dc:Bounds x="830" y="665" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_wa_alumni_di" bpmnElement="task_wa_alumni">
+        <dc:Bounds x="640" y="239" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_dosen_wa_alumni_di" bpmnElement="task_dosen_wa_alumni">
+        <dc:Bounds x="640" y="395" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_parallel_join_di" bpmnElement="gw_parallel_join" isMarkerVisible="true">
+        <dc:Bounds x="865" y="254" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="872" y="216.5" width="35" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_request_rekap_di" bpmnElement="task_request_rekap">
+        <dc:Bounds x="960" y="239" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_berikan_rekap_di" bpmnElement="task_berikan_rekap">
+        <dc:Bounds x="980" y="665" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_respons_cukup_di" bpmnElement="gw_respons_cukup" isMarkerVisible="true">
+        <dc:Bounds x="1170" y="254" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1090" y="265" width="70" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_analisis_tracer_di" bpmnElement="task_analisis_tracer">
+        <dc:Bounds x="1270" y="239" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_peninjauan_kurikulum_di" bpmnElement="gw_peninjauan_kurikulum" isMarkerVisible="true">
+        <dc:Bounds x="1440" y="254" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1420" y="216.5" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_undang_forum_di" bpmnElement="task_undang_forum">
+        <dc:Bounds x="1550" y="239" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_hadiri_forum_di" bpmnElement="task_hadiri_forum">
+        <dc:Bounds x="1550" y="535" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_koordinasi_ikatan_di" bpmnElement="task_koordinasi_ikatan">
+        <dc:Bounds x="1550" y="825" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_bahas_rtm_di" bpmnElement="task_bahas_rtm">
+        <dc:Bounds x="1730" y="239" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_lapor_wadek_di" bpmnElement="task_lapor_wadek">
+        <dc:Bounds x="1900" y="239" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_1_di" bpmnElement="end_1">
+        <dc:Bounds x="2062" y="261" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2048" y="304" width="74" height="53" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_cde_di" bpmnElement="ann_cde">
+        <dc:Bounds x="275" y="110" width="230" height="45" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_respons_di" bpmnElement="ann_respons">
+        <dc:Bounds x="585" y="480" width="230" height="45" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_wa_di" bpmnElement="ann_wa">
+        <dc:Bounds x="540" y="120" width="250" height="45" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_kurikulum_di" bpmnElement="ann_kurikulum">
+        <dc:Bounds x="1430" y="80" width="250" height="45" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_ikatan_di" bpmnElement="ann_ikatan">
+        <dc:Bounds x="1520" y="960" width="240" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_rtm_di" bpmnElement="ann_rtm">
+        <dc:Bounds x="1750" y="80" width="220" height="45" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="sf_start_koordinasi_di" bpmnElement="sf_start_koordinasi">
+        <di:waypoint x="328" y="279" />
+        <di:waypoint x="370" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_to_split_di" bpmnElement="sf_to_split">
+        <di:waypoint x="490" y="279" />
+        <di:waypoint x="540" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_koordinasi_kirimlink_di" bpmnElement="sf_koordinasi_kirimlink">
+        <di:waypoint x="565" y="304" />
+        <di:waypoint x="565" y="420" />
+        <di:waypoint x="410" y="420" />
+        <di:waypoint x="410" y="725" />
+        <di:waypoint x="500" y="725" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_koordinasi_wa_di" bpmnElement="sf_koordinasi_wa">
+        <di:waypoint x="590" y="279" />
+        <di:waypoint x="640" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_kirimlink_catch_di" bpmnElement="sf_kirimlink_catch">
+        <di:waypoint x="570" y="685" />
+        <di:waypoint x="570" y="630" />
+        <di:waypoint x="520" y="630" />
+        <di:waypoint x="520" y="593" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_catch_isitracer_di" bpmnElement="sf_catch_isitracer">
+        <di:waypoint x="538" y="575" />
+        <di:waypoint x="580" y="575" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_isitracer_throw_di" bpmnElement="sf_isitracer_throw">
+        <di:waypoint x="700" y="575" />
+        <di:waypoint x="752" y="575" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_throw_catchdata_di" bpmnElement="sf_throw_catchdata">
+        <di:waypoint x="770" y="593" />
+        <di:waypoint x="770" y="687" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_catchdata_kumpulkan_di" bpmnElement="sf_catchdata_kumpulkan">
+        <di:waypoint x="788" y="705" />
+        <di:waypoint x="830" y="705" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_kumpulkan_to_join_di" bpmnElement="sf_kumpulkan_to_join">
+        <di:waypoint x="890" y="665" />
+        <di:waypoint x="890" y="304" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_wa_dosenpa_di" bpmnElement="sf_wa_dosenpa">
+        <di:waypoint x="700" y="319" />
+        <di:waypoint x="700" y="395" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_dosenpa_to_join_di" bpmnElement="sf_dosenpa_to_join">
+        <di:waypoint x="760" y="435" />
+        <di:waypoint x="800" y="435" />
+        <di:waypoint x="800" y="279" />
+        <di:waypoint x="865" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_join_to_request_di" bpmnElement="sf_join_to_request">
+        <di:waypoint x="915" y="279" />
+        <di:waypoint x="960" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_request_berikan_di" bpmnElement="sf_request_berikan">
+        <di:waypoint x="1020" y="319" />
+        <di:waypoint x="1020" y="665" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_berikan_gw_di" bpmnElement="sf_berikan_gw">
+        <di:waypoint x="1100" y="705" />
+        <di:waypoint x="1195" y="705" />
+        <di:waypoint x="1195" y="304" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_cukup_analisis_di" bpmnElement="sf_cukup_analisis">
+        <di:waypoint x="1220" y="279" />
+        <di:waypoint x="1270" y="279" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1239" y="261" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_belum_wa_di" bpmnElement="sf_belum_wa">
+        <di:waypoint x="1195" y="254" />
+        <di:waypoint x="1195" y="210" />
+        <di:waypoint x="565" y="210" />
+        <di:waypoint x="565" y="254" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="870" y="192" width="27" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_analisis_gw_kurikulum_di" bpmnElement="sf_analisis_gw_kurikulum">
+        <di:waypoint x="1390" y="279" />
+        <di:waypoint x="1440" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_ya_undang_di" bpmnElement="sf_ya_undang">
+        <di:waypoint x="1490" y="279" />
+        <di:waypoint x="1550" y="279" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1514" y="261" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_tidak_rtm_di" bpmnElement="sf_tidak_rtm">
+        <di:waypoint x="1465" y="304" />
+        <di:waypoint x="1465" y="350" />
+        <di:waypoint x="1790" y="350" />
+        <di:waypoint x="1790" y="319" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1614" y="332" width="27" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_undang_hadiri_di" bpmnElement="sf_undang_hadiri">
+        <di:waypoint x="1610" y="319" />
+        <di:waypoint x="1610" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_hadiri_ikatan_di" bpmnElement="sf_hadiri_ikatan">
+        <di:waypoint x="1610" y="615" />
+        <di:waypoint x="1610" y="825" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_ikatan_rtm_di" bpmnElement="sf_ikatan_rtm">
+        <di:waypoint x="1670" y="865" />
+        <di:waypoint x="1790" y="865" />
+        <di:waypoint x="1790" y="319" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_rtm_lapor_di" bpmnElement="sf_rtm_lapor">
+        <di:waypoint x="1850" y="279" />
+        <di:waypoint x="1900" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_lapor_end_di" bpmnElement="sf_lapor_end">
+        <di:waypoint x="2020" y="279" />
+        <di:waypoint x="2062" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_cde_di" bpmnElement="assoc_cde">
+        <di:waypoint x="420" y="239" />
+        <di:waypoint x="400" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_respons_di" bpmnElement="assoc_respons">
+        <di:waypoint x="645" y="535" />
+        <di:waypoint x="646" y="525" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_wa_di" bpmnElement="assoc_wa">
+        <di:waypoint x="606" y="239" />
+        <di:waypoint x="617" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_kurikulum_di" bpmnElement="assoc_kurikulum">
+        <di:waypoint x="1585" y="239" />
+        <di:waypoint x="1514" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_rtm_di" bpmnElement="assoc_rtm">
+        <di:waypoint x="1797" y="239" />
+        <di:waypoint x="1816" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_01iiswz_di" bpmnElement="Association_01iiswz">
+        <di:waypoint x="1633" y="960" />
+        <di:waypoint x="1620" y="905" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.44.0">
+  <process id="ProsesEAsIs" name="As-Is: Alur Kerjasama (PKS dan IA)" isExecutable="false">
+    <laneSet id="ls1">
+      <lane id="lane_mitra" name="Mitra Kerjasama">
+        <flowNodeRef>task_review_draft</flowNodeRef>
+        <flowNodeRef>task_ttd_pks_mitra</flowNodeRef>
+        <flowNodeRef>task_ttd_ia_mitra</flowNodeRef>
+        <flowNodeRef>msg_catch_draft</flowNodeRef>
+        <flowNodeRef>gw_mitra_setuju</flowNodeRef>
+        <flowNodeRef>msg_throw_pks</flowNodeRef>
+        <flowNodeRef>msg_throw_ia</flowNodeRef>
+      </lane>
+      <lane id="lane_dekan" name="Dekan">
+        <flowNodeRef>task_review_ttd_pks</flowNodeRef>
+        <flowNodeRef>task_review_ttd_ia</flowNodeRef>
+      </lane>
+      <lane id="lane_fitri" name="Mbak Fitri (Staf Administrasi)">
+        <flowNodeRef>task_catat_pks</flowNodeRef>
+        <flowNodeRef>task_catat_ia</flowNodeRef>
+      </lane>
+      <lane id="lane_wdiii" name="WD III (Wakil Dekan Kemahasiswaan)">
+        <flowNodeRef>task_identifikasi_mitra</flowNodeRef>
+        <flowNodeRef>task_inisiasi_kontak</flowNodeRef>
+        <flowNodeRef>task_diskusi_ruang_lingkup</flowNodeRef>
+        <flowNodeRef>task_susun_draft_pks</flowNodeRef>
+        <flowNodeRef>task_ajukan_pks_dekan</flowNodeRef>
+        <flowNodeRef>task_dinas_kunjungan</flowNodeRef>
+        <flowNodeRef>task_identifikasi_kegiatan</flowNodeRef>
+        <flowNodeRef>task_susun_ia</flowNodeRef>
+        <flowNodeRef>task_ajukan_ia_dekan</flowNodeRef>
+        <flowNodeRef>start_1</flowNodeRef>
+        <flowNodeRef>gw_mitra_tertarik</flowNodeRef>
+        <flowNodeRef>msg_throw_draft</flowNodeRef>
+        <flowNodeRef>end_1</flowNodeRef>
+        <flowNodeRef>gw_ada_kegiatan_lanjut</flowNodeRef>
+        <flowNodeRef>Event_1e8t2w9</flowNodeRef>
+      </lane>
+    </laneSet>
+    <dataStoreReference id="ds_gsheet" name="Google Sheet Kerjasama&#10;(PKS &#38; IA - Mbak Fitri)" />
+    <startEvent id="start_1" name="Identifikasi Kebutuhan&#10;Kerjasama Baru">
+      <outgoing>sf_start_identifikasi</outgoing>
+    </startEvent>
+    <task id="task_identifikasi_mitra" name="Identifikasi &#38; Seleksi&#10;Calon Mitra Kerjasama">
+      <incoming>sf_start_identifikasi</incoming>
+      <outgoing>sf_identifikasi_inisiasi</outgoing>
+    </task>
+    <task id="task_inisiasi_kontak" name="Inisiasi Kontak dengan&#10;Calon Mitra">
+      <incoming>sf_identifikasi_inisiasi</incoming>
+      <outgoing>sf_inisiasi_gw</outgoing>
+    </task>
+    <exclusiveGateway id="gw_mitra_tertarik" name="Mitra&#10;Tertarik?">
+      <incoming>sf_inisiasi_gw</incoming>
+      <outgoing>sf_tertarik_diskusi</outgoing>
+      <outgoing>sf_tidak_tertarik_end</outgoing>
+    </exclusiveGateway>
+    <task id="task_diskusi_ruang_lingkup" name="Diskusi Ruang Lingkup&#10;Kerjasama dengan Mitra">
+      <incoming>sf_tertarik_diskusi</incoming>
+      <outgoing>sf_diskusi_draft</outgoing>
+    </task>
+    <task id="task_susun_draft_pks" name="Susun Draft PKS&#10;(Perjanjian Kerjasama)">
+      <incoming>sf_diskusi_draft</incoming>
+      <outgoing>sf_draft_throw</outgoing>
+    </task>
+    <dataObjectReference id="do_draft_pks" name="Draft PKS&#10;(Dokumen)" dataObjectRef="dao_draft_pks" />
+    <dataObject id="dao_draft_pks" />
+    <intermediateThrowEvent id="msg_throw_draft" name="Kirim Draft PKS&#10;ke Mitra">
+      <incoming>sf_draft_throw</incoming>
+      <outgoing>sf_throw_catch_draft</outgoing>
+      <messageEventDefinition id="med_throw_draft" />
+    </intermediateThrowEvent>
+    <intermediateCatchEvent id="msg_catch_draft" name="Terima Draft PKS&#10;dari WD III">
+      <incoming>sf_throw_catch_draft</incoming>
+      <outgoing>sf_catch_review</outgoing>
+      <messageEventDefinition id="med_catch_draft" />
+    </intermediateCatchEvent>
+    <task id="task_review_draft" name="Review Draft PKS">
+      <incoming>sf_catch_review</incoming>
+      <outgoing>sf_review_gw</outgoing>
+    </task>
+    <exclusiveGateway id="gw_mitra_setuju" name="Mitra&#10;Setuju Draft?">
+      <incoming>sf_review_gw</incoming>
+      <outgoing>sf_setuju_ttd_mitra</outgoing>
+      <outgoing>sf_revisi_draft</outgoing>
+    </exclusiveGateway>
+    <task id="task_ttd_pks_mitra" name="Tanda Tangan PKS&#10;(Mitra)">
+      <incoming>sf_setuju_ttd_mitra</incoming>
+      <outgoing>sf_ttd_mitra_throw</outgoing>
+    </task>
+    <intermediateThrowEvent id="msg_throw_pks" name="Kirim PKS&#10;ke WD III/Dekan">
+      <incoming>sf_ttd_mitra_throw</incoming>
+      <outgoing>sf_throw_pks_dekan</outgoing>
+      <messageEventDefinition id="med_throw_pks" />
+    </intermediateThrowEvent>
+    <task id="task_ajukan_pks_dekan" name="Ajukan PKS ke Dekan&#10;untuk Persetujuan &#38; TTD">
+      <incoming>Flow_1r2weps</incoming>
+      <outgoing>sf_ajukan_review_dekan</outgoing>
+    </task>
+    <task id="task_review_ttd_pks" name="Review &#38; Tanda Tangan&#10;PKS (Tanda Tangan Basah)">
+      <incoming>sf_ajukan_review_dekan</incoming>
+      <outgoing>sf_ttd_dekan_catat</outgoing>
+    </task>
+    <task id="task_catat_pks" name="Catat PKS di Google Sheet&#10;Kerjasama per Kategori">
+      <incoming>sf_ttd_dekan_catat</incoming>
+      <outgoing>sf_catat_pks_dinas</outgoing>
+      <dataOutputAssociation id="doa_pks">
+        <targetRef>ds_gsheet</targetRef>
+      </dataOutputAssociation>
+    </task>
+    <task id="task_dinas_kunjungan" name="Dinas Kunjungan ke Mitra&#10;(Dalam / Luar Negeri)">
+      <incoming>sf_catat_pks_dinas</incoming>
+      <outgoing>sf_dinas_identifikasi</outgoing>
+    </task>
+    <task id="task_identifikasi_kegiatan" name="Identifikasi Kegiatan Spesifik&#10;yang Akan Dilakukan Bersama Mitra">
+      <incoming>sf_dinas_identifikasi</incoming>
+      <outgoing>sf_identifikasi_ia</outgoing>
+    </task>
+    <task id="task_susun_ia" name="Susun Draft IA&#10;(Implementing Agreement)">
+      <incoming>sf_identifikasi_ia</incoming>
+      <outgoing>sf_ia_ttd_mitra</outgoing>
+    </task>
+    <dataObjectReference id="do_ia" name="IA&#10;(Implementing Agreement)" dataObjectRef="dao_ia" />
+    <dataObject id="dao_ia" />
+    <task id="task_ttd_ia_mitra" name="Tanda Tangan IA&#10;(Mitra)">
+      <incoming>sf_ia_ttd_mitra</incoming>
+      <outgoing>sf_ttd_ia_mitra_throw</outgoing>
+    </task>
+    <intermediateThrowEvent id="msg_throw_ia" name="Kirim IA ke&#10;WD III/Dekan">
+      <incoming>sf_ttd_ia_mitra_throw</incoming>
+      <outgoing>sf_throw_ia_ajukan</outgoing>
+      <messageEventDefinition id="med_throw_ia" />
+    </intermediateThrowEvent>
+    <task id="task_ajukan_ia_dekan" name="Ajukan IA ke Dekan&#10;untuk Tanda Tangan">
+      <incoming>sf_throw_ia_ajukan</incoming>
+      <outgoing>sf_ajukan_ia_review</outgoing>
+    </task>
+    <task id="task_review_ttd_ia" name="Review &#38; Tanda Tangan&#10;IA (Tanda Tangan Basah)">
+      <incoming>sf_ajukan_ia_review</incoming>
+      <outgoing>sf_ttd_ia_catat</outgoing>
+    </task>
+    <task id="task_catat_ia" name="Catat IA di Google Sheet&#10;Kerjasama">
+      <incoming>sf_ttd_ia_catat</incoming>
+      <outgoing>sf_catat_ia_gw</outgoing>
+      <dataOutputAssociation id="doa_ia">
+        <targetRef>ds_gsheet</targetRef>
+      </dataOutputAssociation>
+    </task>
+    <exclusiveGateway id="gw_ada_kegiatan_lanjut" name="Ada Kegiatan&#10;IA Lanjutan?">
+      <incoming>sf_catat_ia_gw</incoming>
+      <outgoing>sf_ada_kegiatan</outgoing>
+      <outgoing>sf_tidak_ada_end</outgoing>
+    </exclusiveGateway>
+    <endEvent id="end_1" name="PKS &#38; IA Aktif;&#10;Kerjasama Berjalan">
+      <incoming>sf_tidak_tertarik_end</incoming>
+      <incoming>sf_tidak_ada_end</incoming>
+    </endEvent>
+    <sequenceFlow id="sf_start_identifikasi" sourceRef="start_1" targetRef="task_identifikasi_mitra" />
+    <sequenceFlow id="sf_identifikasi_inisiasi" sourceRef="task_identifikasi_mitra" targetRef="task_inisiasi_kontak" />
+    <sequenceFlow id="sf_inisiasi_gw" sourceRef="task_inisiasi_kontak" targetRef="gw_mitra_tertarik" />
+    <sequenceFlow id="sf_tertarik_diskusi" name="Ya" sourceRef="gw_mitra_tertarik" targetRef="task_diskusi_ruang_lingkup">
+      <conditionExpression>Mitra tertarik</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_tidak_tertarik_end" sourceRef="gw_mitra_tertarik" targetRef="end_1">
+      <conditionExpression>Mitra tidak tertarik</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_diskusi_draft" sourceRef="task_diskusi_ruang_lingkup" targetRef="task_susun_draft_pks" />
+    <sequenceFlow id="sf_draft_throw" sourceRef="task_susun_draft_pks" targetRef="msg_throw_draft" />
+    <sequenceFlow id="sf_throw_catch_draft" sourceRef="msg_throw_draft" targetRef="msg_catch_draft" />
+    <sequenceFlow id="sf_catch_review" sourceRef="msg_catch_draft" targetRef="task_review_draft" />
+    <sequenceFlow id="sf_review_gw" sourceRef="task_review_draft" targetRef="gw_mitra_setuju" />
+    <sequenceFlow id="sf_setuju_ttd_mitra" sourceRef="gw_mitra_setuju" targetRef="task_ttd_pks_mitra">
+      <conditionExpression>Setuju</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_revisi_draft" sourceRef="gw_mitra_setuju" targetRef="task_susun_draft_pks">
+      <conditionExpression>Perlu revisi</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_ttd_mitra_throw" sourceRef="task_ttd_pks_mitra" targetRef="msg_throw_pks" />
+    <sequenceFlow id="sf_throw_pks_dekan" sourceRef="msg_throw_pks" targetRef="Event_1e8t2w9" />
+    <sequenceFlow id="sf_ajukan_review_dekan" sourceRef="task_ajukan_pks_dekan" targetRef="task_review_ttd_pks" />
+    <sequenceFlow id="sf_ttd_dekan_catat" sourceRef="task_review_ttd_pks" targetRef="task_catat_pks" />
+    <sequenceFlow id="sf_catat_pks_dinas" sourceRef="task_catat_pks" targetRef="task_dinas_kunjungan" />
+    <sequenceFlow id="sf_dinas_identifikasi" sourceRef="task_dinas_kunjungan" targetRef="task_identifikasi_kegiatan" />
+    <sequenceFlow id="sf_identifikasi_ia" sourceRef="task_identifikasi_kegiatan" targetRef="task_susun_ia" />
+    <sequenceFlow id="sf_ia_ttd_mitra" sourceRef="task_susun_ia" targetRef="task_ttd_ia_mitra" />
+    <sequenceFlow id="sf_ttd_ia_mitra_throw" sourceRef="task_ttd_ia_mitra" targetRef="msg_throw_ia" />
+    <sequenceFlow id="sf_throw_ia_ajukan" sourceRef="msg_throw_ia" targetRef="task_ajukan_ia_dekan" />
+    <sequenceFlow id="sf_ajukan_ia_review" sourceRef="task_ajukan_ia_dekan" targetRef="task_review_ttd_ia" />
+    <sequenceFlow id="sf_ttd_ia_catat" sourceRef="task_review_ttd_ia" targetRef="task_catat_ia" />
+    <sequenceFlow id="sf_catat_ia_gw" sourceRef="task_catat_ia" targetRef="gw_ada_kegiatan_lanjut" />
+    <sequenceFlow id="sf_ada_kegiatan" sourceRef="gw_ada_kegiatan_lanjut" targetRef="task_identifikasi_kegiatan">
+      <conditionExpression>Ada kegiatan IA lanjutan</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf_tidak_ada_end" sourceRef="gw_ada_kegiatan_lanjut" targetRef="end_1">
+      <conditionExpression>Tidak ada kegiatan lanjutan</conditionExpression>
+    </sequenceFlow>
+    <intermediateCatchEvent id="Event_1e8t2w9" name="Terima PKS dari Mitra">
+      <incoming>sf_throw_pks_dekan</incoming>
+      <outgoing>Flow_1r2weps</outgoing>
+      <messageEventDefinition id="MessageEventDefinition_1rcwqu7" />
+    </intermediateCatchEvent>
+    <sequenceFlow id="Flow_1r2weps" sourceRef="Event_1e8t2w9" targetRef="task_ajukan_pks_dekan" />
+    <textAnnotation id="ann_kriteria">
+      <text>Mitra harus memenuhi kriteria: BUMN, multinasional, atau startup. Banyak mitra industri lebih berorientasi menjual produk daripada berkolaborasi.</text>
+    </textAnnotation>
+    <association id="assoc_kriteria" sourceRef="task_identifikasi_mitra" targetRef="ann_kriteria" />
+    <textAnnotation id="ann_ttd">
+      <text>Tanda tangan basah; Dekan harus hadir fisik. PKS berlaku untuk jangka waktu tertentu dan bisa menghasilkan multiple IA.</text>
+    </textAnnotation>
+    <association id="assoc_ttd" sourceRef="task_review_ttd_pks" targetRef="ann_ttd" />
+    <textAnnotation id="ann_catat">
+      <text>Dikategorikan: pendidikan / penelitian / pengabdian; dalam negeri / luar negeri. Disertai grafik dan rekap status aktif/tidak.</text>
+    </textAnnotation>
+    <association id="assoc_catat" sourceRef="task_catat_pks" targetRef="ann_catat" />
+    <textAnnotation id="ann_dinas">
+      <text>Kunjungan dalam negeri sudah beberapa kali; kunjungan luar negeri baru ke Malaysia. Termasuk dalam kategori tugas kedinasan.</text>
+    </textAnnotation>
+    <association id="assoc_dinas" sourceRef="task_dinas_kunjungan" targetRef="ann_dinas" />
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_E">
+    <bpmndi:BPMNPlane id="BPMNPlane_E" bpmnElement="ProsesEAsIs">
+      <bpmndi:BPMNShape id="lane_wdiii_di" bpmnElement="lane_wdiii" isHorizontal="true">
+        <dc:Bounds x="160" y="180" width="2300" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_fitri_di" bpmnElement="lane_fitri" isHorizontal="true">
+        <dc:Bounds x="160" y="380" width="2300" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_dekan_di" bpmnElement="lane_dekan" isHorizontal="true">
+        <dc:Bounds x="160" y="510" width="2300" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_mitra_di" bpmnElement="lane_mitra" isHorizontal="true">
+        <dc:Bounds x="160" y="640" width="2300" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ds_gsheet_di" bpmnElement="ds_gsheet" isDataStoreReference="true">
+        <dc:Bounds x="205" y="410" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="198" y="468" width="68" height="53" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="start_1_di" bpmnElement="start_1">
+        <dc:Bounds x="242" y="261" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="224" y="304" width="79" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_identifikasi_mitra_di" bpmnElement="task_identifikasi_mitra">
+        <dc:Bounds x="320" y="239" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_inisiasi_kontak_di" bpmnElement="task_inisiasi_kontak">
+        <dc:Bounds x="490" y="239" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_mitra_tertarik_di" bpmnElement="gw_mitra_tertarik" isMarkerVisible="true">
+        <dc:Bounds x="660" y="254" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="663" y="216.5" width="43" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_diskusi_ruang_lingkup_di" bpmnElement="task_diskusi_ruang_lingkup">
+        <dc:Bounds x="760" y="239" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_susun_draft_pks_di" bpmnElement="task_susun_draft_pks">
+        <dc:Bounds x="930" y="239" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="do_draft_pks_di" bpmnElement="do_draft_pks" isDataObject="true">
+        <dc:Bounds x="1012" y="335" width="36" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1004" y="392" width="55" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="msg_throw_draft_di" bpmnElement="msg_throw_draft">
+        <dc:Bounds x="1082" y="261" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1061" y="223.5" width="78" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="msg_catch_draft_di" bpmnElement="msg_catch_draft">
+        <dc:Bounds x="1082" y="691" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1060" y="734" width="85" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_review_draft_di" bpmnElement="task_review_draft">
+        <dc:Bounds x="1160" y="669" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_mitra_setuju_di" bpmnElement="gw_mitra_setuju" isMarkerVisible="true">
+        <dc:Bounds x="1330" y="684" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1322" y="646.5" width="65" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_ttd_pks_mitra_di" bpmnElement="task_ttd_pks_mitra">
+        <dc:Bounds x="1430" y="669" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="msg_throw_pks_di" bpmnElement="msg_throw_pks">
+        <dc:Bounds x="1592" y="691" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1572" y="734" width="81" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_ajukan_pks_dekan_di" bpmnElement="task_ajukan_pks_dekan">
+        <dc:Bounds x="1430" y="239" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_review_ttd_pks_di" bpmnElement="task_review_ttd_pks">
+        <dc:Bounds x="1430" y="535" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_catat_pks_di" bpmnElement="task_catat_pks">
+        <dc:Bounds x="1600" y="400" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_dinas_kunjungan_di" bpmnElement="task_dinas_kunjungan">
+        <dc:Bounds x="1600" y="239" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_identifikasi_kegiatan_di" bpmnElement="task_identifikasi_kegiatan">
+        <dc:Bounds x="1770" y="239" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_susun_ia_di" bpmnElement="task_susun_ia">
+        <dc:Bounds x="1940" y="239" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="do_ia_di" bpmnElement="do_ia" isDataObject="true">
+        <dc:Bounds x="1952" y="325" width="36" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1935" y="382" width="70" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_ttd_ia_mitra_di" bpmnElement="task_ttd_ia_mitra">
+        <dc:Bounds x="1900" y="669" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="msg_throw_ia_di" bpmnElement="msg_throw_ia">
+        <dc:Bounds x="2052" y="691" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2039" y="734" width="66" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_ajukan_ia_dekan_di" bpmnElement="task_ajukan_ia_dekan">
+        <dc:Bounds x="2100" y="239" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_review_ttd_ia_di" bpmnElement="task_review_ttd_ia">
+        <dc:Bounds x="2100" y="535" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_catat_ia_di" bpmnElement="task_catat_ia">
+        <dc:Bounds x="2100" y="400" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_ada_kegiatan_lanjut_di" bpmnElement="gw_ada_kegiatan_lanjut" isMarkerVisible="true">
+        <dc:Bounds x="2245" y="254" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2286" y="236" width="67" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_1_di" bpmnElement="end_1">
+        <dc:Bounds x="2382" y="261" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2363.5" y="211" width="73" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0t14ho5" bpmnElement="Event_1e8t2w9">
+        <dc:Bounds x="1322" y="261" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1303" y="304" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_kriteria_di" bpmnElement="ann_kriteria">
+        <dc:Bounds x="280" y="90" width="250" height="75" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_ttd_di" bpmnElement="ann_ttd">
+        <dc:Bounds x="1600" y="540" width="240" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_catat_di" bpmnElement="ann_catat">
+        <dc:Bounds x="1730" y="405" width="240" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_dinas_di" bpmnElement="ann_dinas">
+        <dc:Bounds x="1550" y="80" width="250" height="75" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="sf_start_identifikasi_di" bpmnElement="sf_start_identifikasi">
+        <di:waypoint x="278" y="279" />
+        <di:waypoint x="320" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_identifikasi_inisiasi_di" bpmnElement="sf_identifikasi_inisiasi">
+        <di:waypoint x="440" y="279" />
+        <di:waypoint x="490" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_inisiasi_gw_di" bpmnElement="sf_inisiasi_gw">
+        <di:waypoint x="610" y="279" />
+        <di:waypoint x="660" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_tertarik_diskusi_di" bpmnElement="sf_tertarik_diskusi">
+        <di:waypoint x="710" y="279" />
+        <di:waypoint x="760" y="279" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="729" y="261" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_tidak_tertarik_end_di" bpmnElement="sf_tidak_tertarik_end">
+        <di:waypoint x="685" y="304" />
+        <di:waypoint x="685" y="340" />
+        <di:waypoint x="2400" y="340" />
+        <di:waypoint x="2400" y="297" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_diskusi_draft_di" bpmnElement="sf_diskusi_draft">
+        <di:waypoint x="880" y="279" />
+        <di:waypoint x="930" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_draft_throw_di" bpmnElement="sf_draft_throw">
+        <di:waypoint x="1050" y="279" />
+        <di:waypoint x="1082" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_throw_catch_draft_di" bpmnElement="sf_throw_catch_draft">
+        <di:waypoint x="1100" y="297" />
+        <di:waypoint x="1100" y="691" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_catch_review_di" bpmnElement="sf_catch_review">
+        <di:waypoint x="1118" y="709" />
+        <di:waypoint x="1160" y="709" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_review_gw_di" bpmnElement="sf_review_gw">
+        <di:waypoint x="1280" y="709" />
+        <di:waypoint x="1330" y="709" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_setuju_ttd_mitra_di" bpmnElement="sf_setuju_ttd_mitra">
+        <di:waypoint x="1380" y="709" />
+        <di:waypoint x="1430" y="709" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_revisi_draft_di" bpmnElement="sf_revisi_draft">
+        <di:waypoint x="1355" y="734" />
+        <di:waypoint x="1355" y="780" />
+        <di:waypoint x="990" y="780" />
+        <di:waypoint x="990" y="319" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_ttd_mitra_throw_di" bpmnElement="sf_ttd_mitra_throw">
+        <di:waypoint x="1550" y="709" />
+        <di:waypoint x="1592" y="709" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_throw_pks_dekan_di" bpmnElement="sf_throw_pks_dekan">
+        <di:waypoint x="1610" y="691" />
+        <di:waypoint x="1610" y="630" />
+        <di:waypoint x="1270" y="630" />
+        <di:waypoint x="1270" y="279" />
+        <di:waypoint x="1322" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_ajukan_review_dekan_di" bpmnElement="sf_ajukan_review_dekan">
+        <di:waypoint x="1490" y="319" />
+        <di:waypoint x="1490" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_ttd_dekan_catat_di" bpmnElement="sf_ttd_dekan_catat">
+        <di:waypoint x="1520" y="535" />
+        <di:waypoint x="1520" y="440" />
+        <di:waypoint x="1600" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_catat_pks_dinas_di" bpmnElement="sf_catat_pks_dinas">
+        <di:waypoint x="1660" y="400" />
+        <di:waypoint x="1660" y="319" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_dinas_identifikasi_di" bpmnElement="sf_dinas_identifikasi">
+        <di:waypoint x="1720" y="279" />
+        <di:waypoint x="1770" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_identifikasi_ia_di" bpmnElement="sf_identifikasi_ia">
+        <di:waypoint x="1890" y="279" />
+        <di:waypoint x="1940" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_ia_ttd_mitra_di" bpmnElement="sf_ia_ttd_mitra">
+        <di:waypoint x="2000" y="319" />
+        <di:waypoint x="2000" y="494" />
+        <di:waypoint x="1960" y="494" />
+        <di:waypoint x="1960" y="669" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_ttd_ia_mitra_throw_di" bpmnElement="sf_ttd_ia_mitra_throw">
+        <di:waypoint x="2020" y="709" />
+        <di:waypoint x="2052" y="709" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_throw_ia_ajukan_di" bpmnElement="sf_throw_ia_ajukan">
+        <di:waypoint x="2070" y="691" />
+        <di:waypoint x="2070" y="270" />
+        <di:waypoint x="2100" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_ajukan_ia_review_di" bpmnElement="sf_ajukan_ia_review">
+        <di:waypoint x="2100" y="279" />
+        <di:waypoint x="2080" y="279" />
+        <di:waypoint x="2080" y="575" />
+        <di:waypoint x="2100" y="575" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_ttd_ia_catat_di" bpmnElement="sf_ttd_ia_catat">
+        <di:waypoint x="2160" y="535" />
+        <di:waypoint x="2160" y="480" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_catat_ia_gw_di" bpmnElement="sf_catat_ia_gw">
+        <di:waypoint x="2220" y="440" />
+        <di:waypoint x="2270" y="440" />
+        <di:waypoint x="2270" y="304" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_ada_kegiatan_di" bpmnElement="sf_ada_kegiatan">
+        <di:waypoint x="2270" y="254" />
+        <di:waypoint x="2270" y="200" />
+        <di:waypoint x="1830" y="200" />
+        <di:waypoint x="1830" y="239" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf_tidak_ada_end_di" bpmnElement="sf_tidak_ada_end">
+        <di:waypoint x="2295" y="279" />
+        <di:waypoint x="2382" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1r2weps_di" bpmnElement="Flow_1r2weps">
+        <di:waypoint x="1358" y="279" />
+        <di:waypoint x="1430" y="279" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_kriteria_di" bpmnElement="assoc_kriteria">
+        <di:waypoint x="380" y="239" />
+        <di:waypoint x="380" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_ttd_di" bpmnElement="assoc_ttd">
+        <di:waypoint x="1550" y="562" />
+        <di:waypoint x="1600" y="562" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_catat_di" bpmnElement="assoc_catat">
+        <di:waypoint x="1720" y="430" />
+        <di:waypoint x="1730" y="432" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_dinas_di" bpmnElement="assoc_dinas">
+        <di:waypoint x="1653" y="239" />
+        <di:waypoint x="1638" y="155" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

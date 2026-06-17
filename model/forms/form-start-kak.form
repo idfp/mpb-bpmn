@@ -1,0 +1,74 @@
+{
+  "components": [
+    {
+      "label": "Nama Kegiatan",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0k8kntg",
+        "columns": null
+      },
+      "id": "Field_19xnbbb",
+      "key": "namaKegiatan",
+      "validate": {
+        "required": true
+      }
+    },
+    {
+      "label": "Nama Ormawa / UKM",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_1m3e6b3",
+        "columns": null
+      },
+      "id": "Field_0aazaa6",
+      "key": "namaOrmawa",
+      "validate": {
+        "required": true
+      }
+    },
+    {
+      "subtype": "date",
+      "dateLabel": "Tanggal Kegiatan",
+      "type": "datetime",
+      "layout": {
+        "row": "Row_1dcw2tq",
+        "columns": null
+      },
+      "id": "Field_0w52l4w",
+      "key": "tanggalKegiatan",
+      "validate": {
+        "required": true
+      }
+    },
+    {
+      "label": "Total Anggaran",
+      "type": "number",
+      "layout": {
+        "row": "Row_1nxlop2",
+        "columns": null
+      },
+      "id": "Field_0kz83y6",
+      "key": "totalAnggaran",
+      "validate": {
+        "required": true,
+        "min": "0"
+      }
+    },
+    {
+      "label": "Deskripsi Kegiatan",
+      "type": "textarea",
+      "layout": {
+        "row": "Row_1hq0yln",
+        "columns": null
+      },
+      "id": "Field_0bmx29g",
+      "key": "deskripsiKegiatan",
+      "validate": {
+        "required": true
+      }
+    }
+  ],
+  "schemaVersion": 19,
+  "type": "default",
+  "id": "form-start-kak"
+}
