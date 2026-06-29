@@ -47,18 +47,15 @@ MPB_Kelompok6_WakDekan3FIKUPNVJ/
 ├── laporan/
 │   └── Laporan_BPM_Kelompok6_MPB.docx
 ├── model/
-│   ├── as-is/
-│   │   ├── proses_c_asis.bpmn
-│   │   ├── proses_d_asis.bpmn
-│   │   ├── proses_e_asis.bpmn
-│   │   └── proses_g_asis.bpmn
-│   ├── to-be/
-│   │   ├── proses_c_tobe.bpmn
-│   │   ├── proses_d_tobe.bpmn
-│   │   ├── proses_e_tobe.bpmn
-│   │   └── proses_g_tobe.bpmn
-│   ├── dmn/
-│   │   └── keputusan-kak.dmn
+│   ├── As-Is_ Alur Kerjasama (PKS dan IA).bpmn
+│   ├── As-Is_ Koordinasi Alumni dan Tracer Study.bpmn
+│   ├── As-Is_ Pengajuan Kegiatan Ormawa (KAK).bpmn
+│   ├── As-Is_ Penyusunan Laporan Kinerja (LAKIN).bpmn
+│   ├── To-Be_ Alur Kerjasama (PKS dan IA).bpmn
+│   ├── To-Be_ Koordinasi Alumni dan Tracer Study.bpmn
+│   ├── To-Be_ Pengajuan Kegiatan Ormawa (KAK).bpmn
+│   ├── To-Be_ Penyusunan Laporan Kinerja (LAKIN).bpmn
+│   ├── KAK.dmn
 │   └── forms/
 │       ├── form-start-kak.form
 │       ├── form-verifikasi-kak.form
@@ -87,8 +84,8 @@ MPB_Kelompok6_WakDekan3FIKUPNVJ/
 ### 1. Deploy ke CIB Seven
 
 Buka CIB Seven Modeler → klik **Deploy** → upload semua file dari folder `model/` sekaligus:
-- `proses_c_tobe.bpmn`, `proses_d_tobe.bpmn`, `proses_e_tobe.bpmn`, `proses_g_tobe.bpmn`
-- `keputusan-kak.dmn`
+- `As-Is_*.bpmn`, `To-Be_*.bpmn`
+- `KAK.dmn`
 - Semua file `.form`
 
 ### 2. Jalankan Notification API
@@ -160,7 +157,7 @@ https://cibseven1.foul.one/camunda/app/cockpit
 
 ## DMN Decision Table
 
-**File:** `model/dmn/keputusan-kak.dmn`  
+**File:** `model/KAK.dmn`  
 **Decision ID:** `keputusanKAK`  
 **Hit Policy:** FIRST
 
